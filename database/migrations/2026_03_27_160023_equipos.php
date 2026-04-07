@@ -25,6 +25,7 @@ return new class extends Migration
 
             $table->index('disponible');
             $table->index('estado_fisico');
+            $table->index('activo');
         });
     }
 
