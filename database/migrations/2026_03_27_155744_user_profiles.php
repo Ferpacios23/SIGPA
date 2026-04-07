@@ -10,16 +10,33 @@ return new class extends Migration
     {
         Schema::create('user_profiles', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('role_id')->constrained('roles')->restrictOnDelete();
-            $table->string('identificacion', 20)->unique()->nullable()->comment('Cédula o documento de identidad');
+
+            $table->foreignId('user_id')
+                  ->unique()
+                  ->constrained('users')
+                  ->cascadeOnDelete();
+
+            $table->foreignId('role_id')
+                  ->constrained('roles')
+                  ->restrictOnDelete();
+
+            $table->string('identificacion', 20)
+                  ->nullable()
+                  ->unique()
+                  ->comment('Cédula o documento de identidad');
+
             $table->string('telefono', 20)->nullable();
-            $table->string('dependencia', 100)->nullable()->comment('Facultad, área o departamento');
+
+            $table->string('dependencia', 100)
+                  ->nullable()
+                  ->comment('Facultad, área o departamento');
+
             $table->boolean('activo')->default(true);
+
             $table->timestamps();
 
-            $table->index('user_id');
             $table->index('role_id');
+            $table->index('activo');
         });
     }
 
