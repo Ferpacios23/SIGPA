@@ -33,15 +33,7 @@ class DatabaseSeeder extends Seeder
             'telefono' => '1234567890',
             'dependencia' => 'Departamento de Tecnología'
         ],
-        [
-            'name'  => 'docente',
-            'email' => 'docente4@sigpa.edu.co',
-            'role'  => 'docente',
-            'identificacion' => '1077631016',
-            'telefono' => '0987654321',
-            'dependencia' => 'Facultad de Ingeniería'
-        ],
-        [
+[
             'name'  => 'Secretaria',
             'email' => 'secretaria2@sigpa.edu.co',
             'role'  => 'secretaria',
