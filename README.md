@@ -1,62 +1,188 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SIGPA — Sistema Integral de Gestión de Préstamos Académicos
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema web desarrollado en **Laravel 12** para la **Fundación Universitaria Claretiana (Quibdó, Colombia)**, orientado a la gestión y control del préstamo de aulas y equipos tecnológicos.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Módulos implementados
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Autenticación y acceso
+- Login con control de roles (Admin, Secretaría, Técnico TI, Docente)
+- Recuperación de contraseña por correo electrónico
+- Middleware de protección por rol (`role:admin`, `role:secretaria`, `role:tecnico`, `role:docente`)
+- Redirección automática al dashboard correspondiente según el rol
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Administrador
+- Dashboard con estadísticas generales del sistema
+- Gestión de **usuarios** (crear, editar, activar/desactivar)
+- Gestión de **aulas** (crear, editar, eliminar)
+- Gestión de horarios por aula (asignar, activar/desactivar, eliminar)
+- Gestión de **equipos tecnológicos** (CRUD completo con validación de código de inventario único)
+- Gestión de **docentes** como entidades sin acceso al sistema (RF39): registro con contraseña bloqueada, actualización y eliminación (con bloqueo si tiene préstamos activos)
+- Gestión de **roles** (visualización y detalle)
+- Aprobación y cancelación de préstamos desde el panel admin
+- **Reportes** de préstamos con exportación
+- Página de configuración del sistema
 
-## Learning Laravel
+### Secretaría
+- Dashboard con resumen de préstamos del día
+- **Préstamos de aulas**: solicitar, aprobar, cancelar, check-in y finalizar
+- Vista de aulas y su disponibilidad
+- Historial de préstamos realizados
+- **Préstamos de equipos** (HU-09 / HU-10):
+  - Registrar préstamo independiente de equipo a docente
+  - Aprobar, entregar, devolver (con registro de estado físico) y cancelar
+  - Asignar equipo directamente a un préstamo de aula activo
+  - Validación de disponibilidad y conflictos de horario
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### Técnico TI
+- Dashboard con estadísticas en tiempo real: total de equipos, disponibles, en préstamo, dañados
+- Vista de **asignaciones del día**: préstamos de aula activos con sus equipos asignados
+  - Asignar equipo a un préstamo de aula (HU-09)
+  - Registrar devolución con estado físico (bueno / regular / dañado)
+- **Inventario de equipos** (HU-10 / HU-12):
+  - Tabs de filtrado: Todos / Disponibles / Prestados / Fuera de servicio
+  - Búsqueda por nombre, código o marca
+  - Paginación de 10 registros por página
+  - Modal **Ver detalle**: ficha técnica completa (marca, modelo, descripción, ubicación, fecha de adquisición, asignación activa)
+  - Modal **Registrar equipo**: nuevo implemento con todos sus atributos
+  - Modal **Cambiar estado físico**: selector visual (Bueno / Regular / Dañado / Dado de baja), observación con contador de 200 caracteres y barra de progreso, ubicación de almacenamiento
+    - La observación se guarda en el campo `descripcion` del equipo
+    - **Bloqueado** si el equipo tiene un préstamo activo (botón deshabilitado en UI + validación en backend)
+  - Disponibilidad calculada automáticamente: `dañado` o `dado_de_baja` → no disponible; recuperación solo si no tiene préstamo activo
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Docente
+- Dashboard básico (módulo en desarrollo)
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Roles del sistema
 
-### Premium Partners
+| Rol | Descripción |
+|---|---|
+| Administrador | Control total: usuarios, aulas, equipos, roles, reportes, docentes |
+| Secretaría | Gestión de préstamos de aulas y equipos |
+| Técnico TI | Asignación de equipos, inventario y control de estado físico |
+| Docente | Entidad académica (sin acceso al sistema por defecto) |
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+## Requisitos
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- PHP >= 8.2
+- Composer
+- MySQL / MariaDB
+- XAMPP / Laragon / Laravel Sail (o servidor equivalente)
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Descarga del proyecto
 
-## Security Vulnerabilities
+### Opción 1 — Git (recomendado)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Asegúrate de tener [Git](https://git-scm.com/) instalado y ejecuta:
 
-## License
+```bash
+git clone https://github.com/Ferpacios23/SIGPA.git
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# SIGPA
+### Opción 2 — ZIP desde GitHub
 
+1. Ingresa al repositorio: [https://github.com/Ferpacios23/SIGPA](https://github.com/Ferpacios23/SIGPA)
+2. Haz clic en el botón **Code**
+3. Selecciona **Download ZIP**
+4. Extrae el contenido en tu carpeta de proyectos (ej. `htdocs/` si usas XAMPP)
 
+---
+
+## Instalación
+
+```bash
+# 1. Entrar a la carpeta del proyecto
+cd SIGPA
+
+# 2. Instalar dependencias
+composer install
+
+# 3. Copiar el archivo de entorno
+cp .env.example .env
+
+# 4. Generar la clave de la aplicación
+php artisan key:generate
+
+# 5. Configurar la base de datos en el archivo .env
+DB_DATABASE=sigpa
+DB_USERNAME=root
+DB_PASSWORD=
+
+# 6. Ejecutar migraciones y seeders
+php artisan migrate --seed
+
+# 7. Iniciar el servidor de desarrollo
+php artisan serve
+```
+
+---
+
+## Estructura del proyecto
+
+```
+app/
+├── Http/
+│   ├── Controllers/
+│   │   ├── Admin/              # Usuarios, Aulas, Equipos, Roles, Reportes, Docentes, Horarios
+│   │   ├── Auth/               # Login y recuperación de contraseña
+│   │   ├── Dashboard/          # Paneles por rol (Admin, Secretaría, Técnico, Docente)
+│   │   └── Secretaria/         # Préstamos de equipos (secretaría)
+│   └── Middleware/             # RoleMiddleware
+├── Models/
+│   ├── User.php
+│   ├── UserProfile.php
+│   ├── Role.php
+│   ├── Aula.php
+│   ├── Equipo.php
+│   ├── PrestamoAula.php
+│   └── PrestamoEquipo.php      # Préstamos de equipos (independientes y vinculados a aula)
+database/
+├── migrations/
+└── seeders/
+resources/
+└── views/
+    ├── admin/                  # Usuarios, aulas, equipos, roles, docentes, reportes
+    ├── auth/                   # Login, recuperación de contraseña
+    ├── dashboard/              # Dashboards por rol
+    ├── layouts/                # Layout principal del dashboard
+    ├── secretaria/             # Préstamos de aulas y equipos
+    └── tecnico/                # Asignaciones e inventario TI
+```
+
+---
+
+## Stack tecnológico
+
+- **Backend:** Laravel 12 (PHP 8.4)
+- **Frontend:** Blade + Tailwind CSS + Alpine.js
+- **Base de datos:** MySQL / MariaDB
+- **Servidor local:** XAMPP (Apache + MySQL)
+
+---
+
+## Tablas principales
+
+| Tabla | Descripción |
+|---|---|
+| `users` | Usuarios del sistema |
+| `user_profiles` | Perfil extendido (rol, datos académicos) |
+| `roles` | Roles del sistema |
+| `aulas` | Aulas disponibles para préstamo |
+| `equipos` | Inventario de equipos tecnológicos |
+| `prestamos_aulas` | Préstamos de aulas |
+| `prestamos_equipos` | Préstamos de equipos (independientes o vinculados a un préstamo de aula) |
+| `horarios` | Horarios disponibles por aula |
+| `historial_movimientos` | Auditoría de todas las acciones del sistema |
+
+---
+
+## Licencia
+
+Este proyecto es de uso académico/institucional — Fundación Universitaria Claretiana, Quibdó, Colombia.
