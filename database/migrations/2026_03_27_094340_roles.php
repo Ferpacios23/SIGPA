@@ -27,8 +27,6 @@ return new class extends Migration
             ['nombre' => 'Administrador', 'slug' => 'admin',      'descripcion' => 'Control total del sistema',               'created_at' => now(), 'updated_at' => now()],
             ['nombre' => 'Secretaría',    'slug' => 'secretaria', 'descripcion' => 'Gestión de préstamos de aulas',           'created_at' => now(), 'updated_at' => now()],
             ['nombre' => 'Técnico TI',    'slug' => 'tecnico',    'descripcion' => 'Gestión de equipos tecnológicos',         'created_at' => now(), 'updated_at' => now()],
-            ['nombre' => 'Docente',       'slug' => 'docente',    'descripcion' => 'Solicitud de aulas y equipos en préstamo','created_at' => now(), 'updated_at' => now()],
-            
         ]);
     }
 

@@ -8,12 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Esta migración fue duplicada por error; se omite para no recrear la tabla existente.
+        if (Schema::hasTable('prestamos_aulas')) {
+            return;
+        }
         Schema::create('prestamos_aulas', function (Blueprint $table) {
             $table->id();
 
             // Relaciones principales
             $table->foreignId('user_id')->constrained('users')->restrictOnDelete()
-                  ->comment('Docente o usuario que solicita el aula');
+                  ->comment('Usuario que solicita el equipo');
             $table->foreignId('aula_id')->constrained('aulas')->restrictOnDelete();
             $table->foreignId('aprobado_por')->nullable()->constrained('users')->nullOnDelete()
                   ->comment('Secretaria o admin que aprueba el préstamo');
@@ -29,7 +33,7 @@ return new class extends Migration
             $table->enum('estado', ['pendiente', 'aprobado', 'activo', 'finalizado', 'cancelado', 'liberado_por_tolerancia'])
                   ->default('pendiente');
             $table->boolean('asistencia_confirmada')->default(false)
-                  ->comment('El docente confirmó presencia dentro del tiempo de tolerancia');
+                  ->comment('El usuario confirmó presencia dentro del tiempo de tolerancia');
             $table->timestamp('asistencia_confirmada_en')->nullable()
                   ->comment('Timestamp exacto de la confirmación de asistencia');
 
