@@ -1,0 +1,181 @@
+/* ============================================================
+   SIGPA — Auth styles
+   Cubre: login, forgot-password, reset-password
+   ============================================================ */
+
+/* ── Variables ── */
+:root {
+  --green:   #00B67A;
+  --magenta: #E0176C;
+  --blue:    #1A4FD6;
+  --orange:  #F76B1C;
+  --dark:    #0D1117;
+}
+
+/* ── Base ── */
+* { box-sizing: border-box; }
+body { font-family: 'DM Sans', sans-serif; background: var(--dark); min-height: 100vh; display: flex; }
+h1, h2, h3 { font-family: 'Syne', sans-serif; }
+
+/* ── Fondo animado (forgot / reset) ── */
+.body-centered { align-items: center; justify-content: center; }
+
+.bg-mesh {
+  position: fixed; inset: 0; z-index: 0;
+  background: linear-gradient(135deg, #0d1117 0%, #0f2c1a 50%, #112244 100%);
+}
+.bg-mesh::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 30%, rgba(0,182,122,0.15) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 80% 70%, rgba(26,79,214,0.12) 0%, transparent 60%);
+}
+
+/* Rejilla de puntos decorativa */
+.grid-overlay {
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+/* En la pantalla de login la rejilla está dentro del panel izquierdo */
+.left-panel .grid-overlay { position: absolute; }
+
+/* ── Login: panel izquierdo ── */
+.left-panel {
+  background: linear-gradient(160deg, #0d1117 0%, #0f2c1a 50%, #112244 100%);
+  position: relative; overflow: hidden;
+}
+.left-panel::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 60% at 30% 40%, rgba(0,182,122,0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 80% 80%, rgba(26,79,214,0.15) 0%, transparent 60%);
+}
+
+/* ── Tarjeta de login (layout dividido) ── */
+.login-card {
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.35);
+  padding: 44px 40px;
+  width: min(440px, 94vw);
+  animation: cardIn .5s cubic-bezier(.22,1,.36,1) both;
+}
+
+/* ── Tarjeta centrada (forgot / reset) ── */
+.auth-card {
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.35);
+  padding: 44px 40px;
+  width: min(460px, 94vw);
+  position: relative; z-index: 10;
+  animation: cardIn .45s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Campos de formulario ── */
+.field {
+  width: 100%;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .9rem;
+  outline: none;
+  background: #f8fafc;
+  transition: border-color .2s, box-shadow .2s;
+}
+.field:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,79,214,0.12); background: #fff; }
+.field.err   { border-color: var(--magenta); box-shadow: 0 0 0 3px rgba(224,23,108,.1); }
+
+/* Modificadores de padding para íconos */
+.field-pl { padding-left: 40px; }   /* ícono a la izquierda */
+.field-pr { padding-right: 44px; }  /* toggle ojo a la derecha */
+
+.err-msg {
+  color: var(--magenta);
+  font-size: .75rem;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Botón primario de auth ── */
+.btn-auth {
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+  font-family: 'Syne', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(90deg, var(--green), #009a66);
+  box-shadow: 0 6px 24px rgba(0,182,122,0.35);
+  transition: all .2s;
+}
+.btn-auth:hover    { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 10px 30px rgba(0,182,122,0.4); }
+.btn-auth:active   { transform: translateY(0); }
+.btn-auth:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+/* ── Toggle de visibilidad de contraseña ── */
+.eye-btn {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px;
+}
+.eye-btn:hover { color: #64748b; }
+
+/* ── Barra de fortaleza de contraseña ── */
+.strength-bar { height: 4px; border-radius: 2px; transition: width .3s, background .3s; }
+
+/* ── Login: pill de estado del sistema ── */
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(0,182,122,0.12);
+  border: 1px solid rgba(0,182,122,0.35);
+  border-radius: 100px; padding: 4px 14px;
+  color: var(--green); font-size: .72rem; font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase;
+}
+
+/* ── Login: badges de rol ── */
+.role-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: 10px; padding: 8px 14px;
+  font-size: .78rem; font-weight: 600;
+  cursor: default; transition: transform .15s;
+}
+.role-badge:hover { transform: scale(1.04); }
+
+/* ── Login: tarjetas flotantes del panel izquierdo ── */
+.info-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(8px);
+  border-radius: 16px; padding: 16px 20px;
+  animation: floatIn .6s ease both;
+}
+@keyframes floatIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Spinner de carga ── */
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+  display: inline-block; vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
