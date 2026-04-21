@@ -24,9 +24,13 @@ class AdminController extends Controller
         $aulasLibres = $aulas->where('estado', 'disponible')->where('activa', true)->count();
 
         // ── Equipos ───────────────────────────────────────────────
+        $fueraDeServicio = ['dañado', 'dado_de_baja'];
         $totalEquipos    = Equipo::where('activo', true)->count();
         $equiposLibres   = Equipo::where('activo', true)->where('disponible', true)->count();
-        $equiposPrestados= Equipo::where('activo', true)->where('disponible', false)->count();
+        $equiposPrestados= Equipo::where('activo', true)
+                               ->where('disponible', false)
+                               ->whereNotIn('estado_fisico', $fueraDeServicio)
+                               ->count();
         $recentEquipos   = Equipo::where('activo', true)->latest()->take(6)->get();
 
         // ── Préstamos ─────────────────────────────────────────────

@@ -317,12 +317,23 @@
 @endsection
 
 @section('scripts')
-<script>
-window.SIGPA_PAGE = {
-  horariosData: @json($horarios->getCollection()->keyBy('id')),
-  hasErrors: {{ $errors->any() ? 'true' : 'false' }},
-  editId: {{ $errors->any() && old('_method') === 'PUT' ? 'true' : 'null' }},
-  oldForm: @json($errors->any() ? ['docente_id'=>old('docente_id'),'aula_id'=>old('aula_id'),'materia'=>old('materia'),'grupo'=>old('grupo'),'dia_semana'=>old('dia_semana'),'hora_inicio'=>old('hora_inicio'),'hora_fin'=>old('hora_fin'),'fecha_inicio'=>old('fecha_inicio'),'fecha_fin'=>old('fecha_fin')] : null),
-};
-</script>
+@php
+  $pageData = [
+    'horariosData' => $horarios->getCollection()->keyBy('id'),
+    'hasErrors'    => $errors->any(),
+    'editId'       => $errors->any() && old('_method') === 'PUT' ? request()->route('horario') : null,
+    'oldForm'      => $errors->any() ? [
+      'docente_id'  => old('docente_id'),
+      'aula_id'     => old('aula_id'),
+      'materia'     => old('materia'),
+      'grupo'       => old('grupo'),
+      'dia_semana'  => old('dia_semana'),
+      'hora_inicio' => old('hora_inicio'),
+      'hora_fin'    => old('hora_fin'),
+      'fecha_inicio'=> old('fecha_inicio'),
+      'fecha_fin'   => old('fecha_fin'),
+    ] : null,
+  ];
+@endphp
+<script>window.SIGPA_PAGE = @json($pageData);</script>
 @endsection

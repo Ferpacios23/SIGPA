@@ -15,12 +15,16 @@ class TecnicoController extends Controller
     // ── Dashboard ───────────────────────────────────────────────
     public function index()
     {
-        $totalEquipos      = Equipo::where('activo', true)->count();
+        $fueraDeServicio    = ['dañado', 'dado_de_baja'];
+        $totalEquipos       = Equipo::where('activo', true)->count();
         $equiposDisponibles = Equipo::where('activo', true)->where('disponible', true)->count();
-        $equiposPrestados  = Equipo::where('activo', true)->where('disponible', false)->count();
-        $equiposDañados    = Equipo::where('activo', true)
-                                   ->whereIn('estado_fisico', ['dañado', 'dado_de_baja'])
-                                   ->count();
+        $equiposPrestados   = Equipo::where('activo', true)
+                                    ->where('disponible', false)
+                                    ->whereNotIn('estado_fisico', $fueraDeServicio)
+                                    ->count();
+        $equiposDañados     = Equipo::where('activo', true)
+                                    ->whereIn('estado_fisico', $fueraDeServicio)
+                                    ->count();
 
         // Préstamos de aula activos/aprobados de hoy con sus equipos asignados
         $prestamosActivos = PrestamoAula::with(['user', 'aula', 'prestamosEquipos.equipo'])

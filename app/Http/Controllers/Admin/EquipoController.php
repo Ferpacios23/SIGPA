@@ -12,8 +12,16 @@ class EquipoController extends Controller
 {
     public function index()
     {
-        $equipos = Equipo::latest()->paginate(20);
-        return view('admin.equipos.index', compact('equipos'));
+        $fueraDeServicio  = ['dañado', 'dado_de_baja'];
+        $equipos          = Equipo::latest()->paginate(20);
+        $equiposDisponibles = Equipo::where('activo', true)->where('disponible', true)->count();
+        $equiposPrestados   = Equipo::where('activo', true)
+                                    ->where('disponible', false)
+                                    ->whereNotIn('estado_fisico', $fueraDeServicio)
+                                    ->count();
+        $totalEquipos       = Equipo::where('activo', true)->count();
+
+        return view('admin.equipos.index', compact('equipos', 'equiposDisponibles', 'equiposPrestados', 'totalEquipos'));
     }
  
     public function store(Request $request)

@@ -40,9 +40,9 @@
   {{-- Stats --}}
   <div class="grid grid-cols-3 gap-4 mb-5">
     @foreach([
-      ['Disponibles', \App\Models\Equipo::where('disponible',true)->where('activo',true)->count(), 'var(--green)', 'rgba(0,182,122,.08)'],
-      ['Prestados',   \App\Models\Equipo::where('disponible',false)->where('activo',true)->count(),'var(--magenta)','rgba(224,23,108,.08)'],
-      ['Total',       \App\Models\Equipo::where('activo',true)->count(), 'var(--blue)', 'rgba(26,79,214,.08)'],
+      ['Disponibles', $equiposDisponibles, 'var(--green)',   'rgba(0,182,122,.08)'],
+      ['Prestados',   $equiposPrestados,   'var(--magenta)', 'rgba(224,23,108,.08)'],
+      ['Total',       $totalEquipos,       'var(--blue)',     'rgba(26,79,214,.08)'],
     ] as [$lbl,$val,$col,$bg])
     <div class="bg-white rounded-2xl p-4 shadow-sm text-center">
       <p style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:{{ $col }}">{{ $val }}</p>
@@ -60,7 +60,8 @@
     <select x-model="filterDisp" class="field w-auto min-w-40">
       <option value="">Todos</option>
       <option value="1">Disponibles</option>
-      <option value="0">Prestados</option>
+      <option value="prestado">En préstamo</option>
+      <option value="deshabilitado">Deshabilitados</option>
     </select>
     <select x-model="filterEstado" class="field w-auto min-w-40">
       <option value="">Todos los estados</option>
@@ -89,18 +90,27 @@
         <tbody>
           @forelse($equipos as $eq)
             @php
-              $dispBadge = $eq->disponible ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600';
-              $dispLabel = $eq->disponible ? 'Disponible' : 'Prestado';
+              $fueraServicio = in_array($eq->estado_fisico, ['dañado', 'dado_de_baja']);
+              if ($eq->disponible) {
+                  $dispBadge = 'bg-green-100 text-green-700';
+                  $dispLabel = 'Disponible';
+              } elseif ($fueraServicio) {
+                  $dispBadge = 'bg-gray-100 text-gray-500';
+                  $dispLabel = 'Deshabilitado';
+              } else {
+                  $dispBadge = 'bg-pink-100 text-pink-700';
+                  $dispLabel = 'En préstamo';
+              }
               $fisicoBadge = ['bueno'=>'bg-green-100 text-green-700','regular'=>'bg-yellow-100 text-yellow-700','dañado'=>'bg-red-100 text-red-600','dado_de_baja'=>'bg-gray-100 text-gray-500'][$eq->estado_fisico] ?? 'bg-gray-100 text-gray-500';
             @endphp
             <tr class="eq-row border-b border-gray-50 transition-colors"
-                x-show="matchFilter('{{ strtolower($eq->nombre.' '.$eq->codigo_inventario) }}','{{ $eq->disponible ? '1' : '0' }}','{{ $eq->estado_fisico }}')">
+                x-show="matchFilter('{{ strtolower($eq->nombre.' '.$eq->codigo_inventario) }}','{{ $eq->disponible ? '1' : ($fueraServicio ? 'deshabilitado' : 'prestado') }}','{{ $eq->estado_fisico }}')">
               <td class="px-5 py-3.5">
                 <div class="flex items-center gap-3">
                   <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                       style="background:{{ $eq->disponible ? 'rgba(0,182,122,.1)' : 'rgba(224,23,108,.1)' }}">
+                       style="background:{{ $eq->disponible ? 'rgba(0,182,122,.1)' : ($fueraServicio ? 'rgba(148,163,184,.12)' : 'rgba(224,23,108,.1)') }}">
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24"
-                         style="stroke:{{ $eq->disponible ? 'var(--green)' : 'var(--magenta)' }}">
+                         style="stroke:{{ $eq->disponible ? 'var(--green)' : ($fueraServicio ? '#94a3b8' : 'var(--magenta)') }}">
                       <rect x="2" y="5" width="20" height="14" rx="2" stroke-width="2"/>
                       <path d="M8 19v2M16 19v2M5 19h14" stroke-width="2" stroke-linecap="round"/>
                     </svg>
@@ -226,14 +236,26 @@
 @endsection
 
 @section('scripts')
-<script>
-window.SIGPA_PAGE = {
-  equiposData:   @json($equipos->getCollection()->keyBy('id')),
-  checkCodigoUrl:'{{ route('admin.equipos.check-codigo') }}',
-  hasErrors:     {{ $errors->any() ? 'true' : 'false' }},
-  editId:        {{ $errors->any() && old('_method') === 'PUT' ? (request()->route('equipo') ?? 'null') : 'null' }},
-  codigoError:   @json($errors->first('codigo_inventario')),
-  oldForm:       @json($errors->any() ? ['nombre'=>old('nombre'),'codigo_inventario'=>old('codigo_inventario'),'estado_fisico'=>old('estado_fisico','bueno'),'marca'=>old('marca'),'modelo'=>old('modelo'),'ubicacion_almacenamiento'=>old('ubicacion_almacenamiento'),'fecha_adquisicion'=>old('fecha_adquisicion'),'disponible'=>true,'activo'=>true,'descripcion'=>old('descripcion')] : null),
-};
-</script>
+@php
+  $pageData = [
+    'equiposData'   => $equipos->getCollection()->keyBy('id'),
+    'checkCodigoUrl'=> route('admin.equipos.check-codigo'),
+    'hasErrors'     => $errors->any(),
+    'editId'        => $errors->any() && old('_method') === 'PUT' ? request()->route('equipo') : null,
+    'codigoError'   => $errors->first('codigo_inventario'),
+    'oldForm'       => $errors->any() ? [
+      'nombre'                   => old('nombre'),
+      'codigo_inventario'        => old('codigo_inventario'),
+      'estado_fisico'            => old('estado_fisico', 'bueno'),
+      'marca'                    => old('marca'),
+      'modelo'                   => old('modelo'),
+      'ubicacion_almacenamiento' => old('ubicacion_almacenamiento'),
+      'fecha_adquisicion'        => old('fecha_adquisicion'),
+      'disponible'               => true,
+      'activo'                   => true,
+      'descripcion'              => old('descripcion'),
+    ] : null,
+  ];
+@endphp
+<script>window.SIGPA_PAGE = @json($pageData);</script>
 @endsection
