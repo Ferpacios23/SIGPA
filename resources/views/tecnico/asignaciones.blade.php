@@ -1,0 +1,270 @@
+@extends('layouts.dashboard')
+
+@section('title', 'Asignaciones TI')
+@section('accent-color', 'var(--magenta)')
+@section('role-label', '💻 Técnico TI')
+@section('page-title', 'Asignaciones')
+@section('page-subtitle', 'Equipos asignados a préstamos de aula')
+
+@section('sidebar-nav')
+  @include('tecnico.partials.sidebar')
+@endsection
+
+
+
+@section('content')
+<div x-data="asignacionesApp()" class="space-y-5">
+
+  {{-- Flash --}}
+  @if(session('success'))
+    <div class="flex items-center gap-3 p-4 rounded-xl text-sm font-medium"
+         style="background:rgba(0,182,122,.1);color:#00b67a;border:1px solid rgba(0,182,122,.2)">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      {{ session('success') }}
+    </div>
+  @endif
+  @if(session('error'))
+    <div class="flex items-center gap-3 p-4 rounded-xl text-sm font-medium"
+         style="background:rgba(239,68,68,.08);color:#dc2626;border:1px solid rgba(239,68,68,.15)">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      {{ session('error') }}
+    </div>
+  @endif
+
+  {{-- Header --}}
+  <div class="flex items-center justify-between flex-wrap gap-4">
+    <h2 style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;">Asignaciones de Equipos</h2>
+    {{-- Selector de fecha --}}
+    <form method="GET" action="{{ route('tecnico.asignaciones') }}" class="flex items-center gap-2">
+      <label class="text-xs font-semibold text-gray-500">Fecha:</label>
+      <input type="date" name="fecha" value="{{ $fecha }}"
+             class="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-pink-400"
+             onchange="this.form.submit()"/>
+    </form>
+  </div>
+
+  {{-- Info si no es hoy --}}
+  @if($fecha !== today()->toDateString())
+    <div class="flex items-center gap-2 p-3 rounded-xl text-xs font-medium"
+         style="background:rgba(234,179,8,.08);color:#854d0e;border:1px solid rgba(234,179,8,.2)">
+      <svg width="13" height="13" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Mostrando préstamos del {{ \Carbon\Carbon::parse($fecha)->isoFormat('dddd D [de] MMMM') }}.
+      <a href="{{ route('tecnico.asignaciones') }}" class="font-bold underline ml-1">Ir a hoy</a>
+    </div>
+  @endif
+
+  @if($prestamos->isEmpty())
+    <div class="bg-white rounded-2xl shadow-sm px-6 py-16 text-center text-gray-400">
+      <svg class="mx-auto mb-3 opacity-40" width="48" height="48" fill="none" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M3 9h18M9 21V9" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      <p class="text-sm font-semibold">No hay préstamos aprobados o activos para esta fecha</p>
+      <p class="text-xs mt-1">Solo se muestran aulas con estado <strong>aprobado</strong> o <strong>activo</strong></p>
+    </div>
+  @else
+    <div class="space-y-4">
+      @foreach($prestamos as $p)
+        @php
+          $equiposAsig = $p->prestamosEquipos->whereIn('estado', ['aprobado','activo']);
+          $horaInicio  = \Carbon\Carbon::parse(today()->toDateString().' '.substr($p->hora_inicio,0,5));
+          $horaFin     = \Carbon\Carbon::parse(today()->toDateString().' '.substr($p->hora_fin,0,5));
+          $enCurso     = $fecha === today()->toDateString() && now()->between($horaInicio, $horaFin);
+        @endphp
+        <div class="prestamo-card" style="border-left:4px solid {{ $enCurso ? '#E0176C' : '#e2e8f0' }}">
+
+          {{-- Cabecera del préstamo --}}
+          <div class="px-6 py-4 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                @if($enCurso)
+                  <span class="flex items-center gap-1.5 text-xs font-bold px-2 py-0.5 rounded-full"
+                        style="background:rgba(224,23,108,.12);color:#E0176C">
+                    <span class="w-1.5 h-1.5 rounded-full bg-current animate-pulse inline-block"></span>
+                    En curso ahora
+                  </span>
+                @endif
+                <span class="badge {{ $p->estado==='activo' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700' }}">
+                  {{ ucfirst($p->estado) }}
+                </span>
+              </div>
+              <div class="flex items-center gap-3 flex-wrap">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center"
+                       style="background:rgba(224,23,108,.1)">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="#E0176C" stroke-width="2"/><path d="M3 9h18M9 21V9" stroke="#E0176C" stroke-width="2"/></svg>
+                  </div>
+                  <div>
+                    <p class="font-bold text-gray-800 text-base">Aula {{ $p->aula?->codigo }}</p>
+                    <p class="text-xs text-gray-400">Cap. {{ $p->aula?->capacidad ?? '—' }}</p>
+                  </div>
+                </div>
+                <div class="text-gray-300">|</div>
+                <div>
+                  <p class="font-semibold text-gray-700 text-sm">{{ $p->user?->name }}</p>
+                  <p class="text-xs text-gray-400">{{ $p->user?->profile?->dependencia ?? $p->user?->email }}</p>
+                </div>
+                <div class="text-gray-300">|</div>
+                <div>
+                  <p class="text-sm font-semibold text-gray-700">
+                    {{ substr($p->hora_inicio,0,5) }} – {{ substr($p->hora_fin,0,5) }}
+                  </p>
+                  @if($p->motivo)
+                    <p class="text-xs text-gray-400">{{ Str::limit($p->motivo, 50) }}</p>
+                  @endif
+                </div>
+              </div>
+            </div>
+
+            <button @click="openAsignar({{ $p->id }}, '{{ addslashes($p->aula?->codigo) }}')"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white font-semibold text-sm shrink-0"
+                    style="background:#E0176C;box-shadow:0 4px 12px rgba(224,23,108,.3)">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
+              Asignar equipo
+            </button>
+          </div>
+
+          {{-- Equipos asignados a este préstamo --}}
+          @if($equiposAsig->isNotEmpty())
+            <div class="border-t border-gray-100 px-6 py-4">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+                Equipos asignados ({{ $equiposAsig->count() }})
+              </p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                @foreach($equiposAsig as $pe)
+                  <div class="flex items-center justify-between p-3 rounded-xl"
+                       style="background:#fdf2f8;border:1px solid rgba(224,23,108,.15)">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                      <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                           style="background:rgba(224,23,108,.12)">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" stroke="#E0176C" stroke-width="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke="#E0176C" stroke-width="2"/></svg>
+                      </div>
+                      <div class="min-w-0">
+                        <p class="text-sm font-semibold text-gray-800 truncate">{{ $pe->equipo?->nombre }}</p>
+                        <p class="text-xs text-gray-400">{{ $pe->equipo?->codigo_inventario }}</p>
+                      </div>
+                    </div>
+                    <button @click="openDevolver({{ $pe->id }}, '{{ addslashes($pe->equipo?->nombre) }}')"
+                            class="ml-2 text-xs font-semibold px-2 py-1 rounded-lg shrink-0"
+                            style="background:rgba(124,58,237,.1);color:#7c3aed">
+                      ↩
+                    </button>
+                  </div>
+                @endforeach
+              </div>
+            </div>
+          @else
+            <div class="border-t border-gray-50 px-6 py-3">
+              <p class="text-xs text-gray-400">Sin equipos asignados aún</p>
+            </div>
+          @endif
+
+        </div>
+      @endforeach
+    </div>
+  @endif
+
+  {{-- ════ MODAL ASIGNAR ════ --}}
+  <div x-show="showAsignar" class="modal-overlay" @click.self="showAsignar=false" style="display:none">
+    <div class="modal-box">
+      <div class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
+        <div>
+          <h3 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.05rem;">Asignar Equipo</h3>
+          <p class="text-gray-400 text-xs mt-0.5">Aula: <strong x-text="asignarAula" style="color:#E0176C"></strong></p>
+        </div>
+        <button @click="showAsignar=false" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <form :action="'/tecnico/prestamos/' + asignarId + '/asignar'" method="POST" class="px-6 py-5 space-y-4">
+        @csrf
+        @if($equiposDisponibles->isEmpty())
+          <div class="p-4 rounded-xl text-sm font-medium text-center"
+               style="background:rgba(234,179,8,.08);color:#854d0e;border:1px solid rgba(234,179,8,.2)">
+            <svg class="mx-auto mb-2 opacity-60" width="24" height="24" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            No hay equipos disponibles en este momento.
+          </div>
+        @else
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-2">Equipo disponible *</label>
+            <select name="equipo_id" class="field" required>
+              <option value="">Seleccionar equipo...</option>
+              @foreach($equiposDisponibles as $eq)
+                <option value="{{ $eq->id }}">
+                  {{ $eq->nombre }} — {{ $eq->codigo_inventario }}
+                  @if($eq->marca) · {{ $eq->marca }} @endif
+                  ({{ ucfirst($eq->estado_fisico) }})
+                </option>
+              @endforeach
+            </select>
+          </div>
+
+          <div class="flex items-start gap-2 p-3 rounded-xl text-xs"
+               style="background:rgba(224,23,108,.06);color:#9f1239;border:1px solid rgba(224,23,108,.15)">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            El equipo se marcará como <strong>no disponible</strong> y se registrará asociado al préstamo de aula.
+          </div>
+        @endif
+
+        <div class="flex gap-3 pt-1">
+          <button type="button" @click="showAsignar=false"
+            class="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50">
+            Cancelar
+          </button>
+          @if($equiposDisponibles->isNotEmpty())
+            <button type="submit" class="flex-1 py-2.5 rounded-xl text-white font-semibold text-sm"
+                    style="background:#E0176C">
+              Asignar
+            </button>
+          @endif
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {{-- ════ MODAL DEVOLVER ════ --}}
+  <div x-show="showDevolver" class="modal-overlay" @click.self="showDevolver=false" style="display:none">
+    <div class="modal-box" style="max-width:400px">
+      <div class="px-6 py-6">
+        <div class="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center"
+             style="background:rgba(139,92,246,.1)">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+            <path d="M9 14L4 9l5-5M4 9h11a6 6 0 010 12h-3" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.05rem;text-align:center;margin-bottom:4px;">Registrar devolución</h3>
+        <p class="text-gray-600 text-sm text-center mb-1" x-text="devolverNombre" style="font-weight:600"></p>
+        <p class="text-gray-400 text-xs text-center mb-5">¿En qué estado regresa el equipo?</p>
+        <form :action="'/tecnico/asignaciones/' + devolverIdVal + '/devolver'" method="POST">
+          @csrf @method('PATCH')
+          <div class="space-y-2 mb-5">
+            @foreach(['bueno'=>['label'=>'Bueno','sub'=>'Sin daños aparentes','color'=>'#16a34a'],'regular'=>['label'=>'Regular','sub'=>'Desgaste normal de uso','color'=>'#d97706'],'dañado'=>['label'=>'Dañado','sub'=>'Requiere revisión técnica','color'=>'#dc2626']] as $val=>$info)
+              <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
+                <input type="radio" name="estado_devolucion" value="{{ $val }}" {{ $val==='bueno'?'checked':'' }}
+                       class="w-4 h-4" style="accent-color:{{ $info['color'] }}"/>
+                <div>
+                  <p class="text-sm font-semibold text-gray-800">{{ $info['label'] }}</p>
+                  <p class="text-xs text-gray-400">{{ $info['sub'] }}</p>
+                </div>
+              </label>
+            @endforeach
+          </div>
+          <div class="flex gap-3">
+            <button type="button" @click="showDevolver=false"
+              class="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50">
+              Cancelar
+            </button>
+            <button type="submit" class="flex-1 py-2.5 rounded-xl text-white font-semibold text-sm"
+                    style="background:#7c3aed">
+              Confirmar devolución
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+@endsection
+
+
