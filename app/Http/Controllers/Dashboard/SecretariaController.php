@@ -99,7 +99,9 @@ class SecretariaController extends Controller
                        ->with('profile')
                        ->get();
         $prestamosPendientesCount = PrestamoAula::where('estado', 'pendiente')->count();
-        $equiposDisponibles = Equipo::disponibles()->orderBy('nombre')->get();
+        $equiposDisponibles = Equipo::disponibles()
+            ->whereRaw("LOWER(ubicacion_almacenamiento) LIKE ?", ['%secretar%'])
+            ->orderBy('nombre')->get();
 
         return view('secretaria.prestamos', compact(
             'prestamos', 'aulas', 'docentes',
@@ -218,6 +220,10 @@ class SecretariaController extends Controller
     // ── Vista de aulas ───────────────────────────────────────────
     public function aulas(Request $request)
     {
+        $dias   = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
+        $diaHoy = $dias[now()->dayOfWeek];
+        $ahora  = now()->format('H:i:s');
+
         $aulas = Aula::where('activa', true)
             ->when($request->estado, fn($q, $v) => $q->where('estado', $v))
             ->when($request->search, fn($q, $v) =>
@@ -227,12 +233,23 @@ class SecretariaController extends Controller
             ->orderBy('codigo')
             ->get();
 
-        // Para cada aula disponible, obtener el préstamo activo si lo hay
-        $aulas->each(function ($aula) {
+        $aulas->each(function ($aula) use ($diaHoy, $ahora) {
+            // Préstamo de usuario aprobado/activo hoy
             $aula->prestamo_activo = PrestamoAula::with('user')
                 ->where('aula_id', $aula->id)
                 ->whereIn('estado', ['aprobado', 'activo'])
                 ->whereDate('fecha_prestamo', today())
+                ->first();
+
+            // Clase académica en curso ahora mismo
+            $aula->horario_activo = HorarioAcademico::with('docente')
+                ->where('aula_id', $aula->id)
+                ->where('dia_semana', $diaHoy)
+                ->where('activo', true)
+                ->where('fecha_inicio', '<=', today())
+                ->where('fecha_fin',    '>=', today())
+                ->where('hora_inicio', '<=', $ahora)
+                ->where('hora_fin',    '>',  $ahora)
                 ->first();
         });
 
@@ -275,11 +292,45 @@ class SecretariaController extends Controller
         return back()->with('success', 'Asistencia confirmada. El aula ha sido marcada como ocupada.');
     }
 
+    // ── Check-in de horario académico ───────────────────────────
+    public function checkinHorario(HorarioAcademico $horario)
+    {
+        $ahora = now()->format('H:i:s');
+        if ($ahora < $horario->hora_inicio || $ahora >= $horario->hora_fin) {
+            return back()->with('error', 'El check-in solo es posible durante el horario de clase.');
+        }
+
+        $yaExiste = PrestamoAula::where('aula_id', $horario->aula_id)
+            ->whereDate('fecha_prestamo', today())
+            ->whereIn('estado', ['aprobado', 'activo'])
+            ->exists();
+
+        if ($yaExiste) {
+            return back()->with('error', 'El aula ya tiene un préstamo activo registrado.');
+        }
+
+        PrestamoAula::create([
+            'user_id'                  => $horario->docente_id,
+            'aula_id'                  => $horario->aula_id,
+            'aprobado_por'             => Auth::id(),
+            'fecha_prestamo'           => today(),
+            'hora_inicio'              => $horario->hora_inicio,
+            'hora_fin'                 => $horario->hora_fin,
+            'motivo'                   => 'Clase: '.$horario->materia.($horario->grupo ? ' · Gr. '.$horario->grupo : ''),
+            'tolerancia_minutos'       => 0,
+            'estado'                   => 'activo',
+            'asistencia_confirmada'    => true,
+            'asistencia_confirmada_en' => now(),
+        ]);
+
+        return back()->with('success', "Check-in confirmado para el aula {$horario->aula?->codigo}.");
+    }
+
     // ── Historial ────────────────────────────────────────────────
     public function historial(Request $request)
     {
-        $desde = $request->get('desde', now()->startOfMonth()->toDateString());
-        $hasta = $request->get('hasta', now()->toDateString());
+        $desde = $request->query('desde', now()->startOfMonth()->toDateString());
+        $hasta = $request->query('hasta', now()->toDateString());
 
         $prestamos = PrestamoAula::with(['user', 'aula', 'aprobadoPor'])
             ->whereBetween('fecha_prestamo', [$desde, $hasta])

@@ -41,7 +41,9 @@ class PrestamoEquipoController extends Controller
                            ->paginate(15)
                            ->withQueryString();
 
-        $equiposDisponibles = Equipo::disponibles()->orderBy('nombre')->get();
+        $equiposDisponibles = Equipo::disponibles()
+            ->whereRaw("LOWER(ubicacion_almacenamiento) LIKE ?", ['%secretar%'])
+            ->orderBy('nombre')->get();
         $docentes = User::whereHas('profile.role', fn($q) => $q->where('slug', 'docente'))
                         ->with('profile')
                         ->get();

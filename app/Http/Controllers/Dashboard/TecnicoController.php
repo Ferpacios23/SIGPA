@@ -12,19 +12,26 @@ use Illuminate\Support\Facades\DB;
 
 class TecnicoController extends Controller
 {
+    private function scopeSalasTI($query)
+    {
+        return $query->whereRaw("LOWER(ubicacion_almacenamiento) LIKE ?", ['%sala ti%']);
+    }
+
     // ── Dashboard ───────────────────────────────────────────────
     public function index()
     {
         $fueraDeServicio    = ['dañado', 'dado_de_baja'];
-        $totalEquipos       = Equipo::where('activo', true)->count();
-        $equiposDisponibles = Equipo::where('activo', true)->where('disponible', true)->count();
-        $equiposPrestados   = Equipo::where('activo', true)
-                                    ->where('disponible', false)
-                                    ->whereNotIn('estado_fisico', $fueraDeServicio)
-                                    ->count();
-        $equiposDañados     = Equipo::where('activo', true)
-                                    ->whereIn('estado_fisico', $fueraDeServicio)
-                                    ->count();
+        $totalEquipos       = $this->scopeSalasTI(Equipo::where('activo', true))->count();
+        $equiposDisponibles = $this->scopeSalasTI(Equipo::where('activo', true)->where('disponible', true))->count();
+        $equiposPrestados   = $this->scopeSalasTI(
+                                Equipo::where('activo', true)
+                                      ->where('disponible', false)
+                                      ->whereNotIn('estado_fisico', $fueraDeServicio)
+                              )->count();
+        $equiposDañados     = $this->scopeSalasTI(
+                                Equipo::where('activo', true)
+                                      ->whereIn('estado_fisico', $fueraDeServicio)
+                              )->count();
 
         // Préstamos de aula activos/aprobados de hoy con sus equipos asignados
         $prestamosActivos = PrestamoAula::with(['user', 'aula', 'prestamosEquipos.equipo'])
@@ -48,7 +55,7 @@ class TecnicoController extends Controller
             ->take(5)
             ->get();
 
-        $disponibles = Equipo::disponibles()->orderBy('nombre')->get();
+        $disponibles = $this->scopeSalasTI(Equipo::disponibles())->orderBy('nombre')->get();
 
         return view('dashboard.tecnico', compact(
             'totalEquipos',
@@ -73,7 +80,7 @@ class TecnicoController extends Controller
             ->orderBy('hora_inicio')
             ->get();
 
-        $equiposDisponibles = Equipo::disponibles()->orderBy('nombre')->get();
+        $equiposDisponibles = $this->scopeSalasTI(Equipo::disponibles())->orderBy('nombre')->get();
 
         return view('tecnico.asignaciones', compact('prestamos', 'equiposDisponibles', 'fecha'));
     }
@@ -196,7 +203,7 @@ class TecnicoController extends Controller
     // ── Inventario completo de equipos ───────────────────────────
     public function inventario(Request $request)
     {
-        $query = Equipo::where('activo', true);
+        $query = $this->scopeSalasTI(Equipo::where('activo', true));
 
         if ($request->filled('estado')) {
             if ($request->estado === 'disponible') {
