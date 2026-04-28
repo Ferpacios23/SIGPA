@@ -34,6 +34,10 @@
     <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 19v2M16 19v2M5 19h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
     Equipos
   </a>
+    <a href="{{ route('admin.horarios.index') }}" class="nav-item">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Horarios
+  </a>
   <p class="nav-section mt-2">Análisis</p>
   <a href="{{ route('admin.reportes.index') }}" class="nav-item">
     <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M9 17H7a2 2 0 01-2-2V5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2h-2M9 17v4m6-4v4M9 21h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -71,10 +75,10 @@
       $mant      = $aulas->getCollection()->where('estado','en_mantenimiento')->count();
     @endphp
     @foreach([
-      ['Total','#'.$total,'#1A4FD6','rgba(26,79,214,.08)'],
-      ['Disponibles','#'.DB::table('aulas')->where('estado','disponible')->count(),'#00B67A','rgba(0,182,122,.08)'],
-      ['Ocupadas','#'.DB::table('aulas')->where('estado','ocupada')->count(),'#E0176C','rgba(224,23,108,.08)'],
-      ['Mantenimiento','#'.DB::table('aulas')->where('estado','en_mantenimiento')->count(),'#F76B1C','rgba(247,107,28,.08)'],
+      ['Total',$total,'#1A4FD6','rgba(26,79,214,.08)'],
+      ['Disponibles',DB::table('aulas')->where('estado','disponible')->count(),'#00B67A','rgba(0,182,122,.08)'],
+      ['Ocupadas',DB::table('aulas')->where('estado','ocupada')->count(),'#E0176C','rgba(224,23,108,.08)'],
+      ['Mantenimiento',DB::table('aulas')->where('estado','en_mantenimiento')->count(),'#F76B1C','rgba(247,107,28,.08)'],
     ] as [$lbl,$val,$col,$bg])
     <div class="bg-white rounded-2xl p-4 shadow-sm">
       <div class="w-8 h-8 rounded-xl mb-3 flex items-center justify-center" style="background:{{ $bg }}">

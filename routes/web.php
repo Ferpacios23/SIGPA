@@ -17,23 +17,23 @@ use App\Http\Controllers\Admin\PrestamoAdminController;
 use App\Http\Controllers\Admin\HorarioController;
 use App\Http\Controllers\Admin\DocenteController as AdminDocenteController;
 use App\Http\Controllers\Secretaria\PrestamoEquipoController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // ── Raíz ──────────────────────────────────────────────────────────
 Route::get('/', function () {
-    if (! auth()->check()) {
+    if (! Auth::check()) {
         return redirect()->route('login');
     }
-    $slug = auth()->user()->profile?->role?->slug;
+    $slug = Auth::user()->profile?->role?->slug;
     $routes = [
         'admin'      => 'dashboard.admin',
         'secretaria' => 'secretaria.dashboard',
         'tecnico'    => 'tecnico.dashboard',
-        'docente'    => 'docente.dashboard',
     ];
     return isset($routes[$slug])
         ? redirect()->route($routes[$slug])
-        : redirect()->route('login');
+        : redirect()->route('login')->with('error', 'Tu rol no tiene un módulo habilitado en esta plataforma.');
 });
 
 // ══════════════════════════════════════════════════════════════════
@@ -119,6 +119,8 @@ Route::middleware(['auth', 'role:secretaria'])
                  [SecretariaController::class, 'checkin'])->name('prestamos.checkin');
 
     Route::get('/aulas',     [SecretariaController::class, 'aulas'])->name('aulas');
+    Route::patch('/horarios/{horario}/checkin',
+                 [SecretariaController::class, 'checkinHorario'])->name('horarios.checkin');
     Route::get('/historial', [SecretariaController::class, 'historial'])->name('historial');
 
     // Préstamos de equipos (HU-09 / HU-10)
@@ -155,8 +157,7 @@ Route::middleware(['auth', 'role:tecnico'])
 });
 
 // ══════════════════════════════════════════════════════════════════
-// DOCENTE
-// Ruta de entrada:  docente.dashboard
+// DOCENTE  (módulo no implementado — redirige al login con mensaje)
 // ══════════════════════════════════════════════════════════════════
 Route::middleware(['auth', 'role:docente'])
      ->prefix('docente')
@@ -164,5 +165,4 @@ Route::middleware(['auth', 'role:docente'])
      ->group(function () {
 
     Route::get('/dashboard', [DocenteController::class, 'index'])->name('dashboard');
-    // Aquí agregarás más rutas cuando desarrolles el módulo docente
 });

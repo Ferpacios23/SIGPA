@@ -55,6 +55,7 @@
           'tipo_cuenta' => $tipo,
           'tolerancia'  => $p->tolerancia_minutos,
           'id'          => $p->id,
+          'horario_id'  => null,
           'prestamo'    => $p,
       ]);
   }
@@ -74,6 +75,7 @@
           'tipo_cuenta' => 'horario',
           'tolerancia'  => 0,
           'id'          => 'h'.$h->id,
+          'horario_id'  => $h->id,
           'prestamo'    => null,
       ]);
   }
@@ -220,9 +222,9 @@
 
                           {{-- Badge de estado --}}
                           @if($ev['tipo'] === 'horario')
-                            <span class="badge" style="background:rgba(139,92,246,.1);color:#7c3aed">
-                              <svg width="9" height="9" fill="none" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2.5"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
-                              Bloqueado · Clase
+                            <span class="badge bg-yellow-100 text-yellow-700">
+                              <svg width="9" height="9" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2.5"/><path d="M12 6v6l3 3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+                              En espera de check-in
                             </span>
                           @elseif($ev['estado'] === 'pendiente')
                             <span class="badge bg-yellow-100 text-yellow-700">Pendiente aprobación</span>
@@ -278,25 +280,43 @@
                             @endif
                           @endif
 
-                          {{-- Acciones rápidas --}}
+                          {{-- Check-in para horario académico en curso --}}
+                          @if($ev['tipo'] === 'horario' && $horaAhora >= $ev['h_inicio'] && $horaAhora < $ev['h_fin'])
+                            <form method="POST"
+                                  action="{{ route('secretaria.horarios.checkin', $ev['horario_id']) }}"
+                                  class="mt-0.5">
+                              @csrf @method('PATCH')
+                              <button type="submit"
+                                class="action-btn text-white text-[.68rem] py-1 px-2.5"
+                                style="background:#8b5cf6">
+                                <svg width="9" height="9" fill="none" viewBox="0 0 24 24">
+                                  <path d="M20 6L9 17l-5-5" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Check-in · Ocupar aula
+                              </button>
+                            </form>
+                          @endif
+
+                          {{-- Acciones rápidas (solo para préstamos, no para horarios académicos) --}}
                           @if($ev['prestamo'])
+                            @php $pid = $ev['prestamo']->id; @endphp
                             <div class="flex gap-1.5 mt-0.5">
                               @if($ev['estado'] === 'pendiente')
-                                <form method="POST" action="{{ route('secretaria.prestamos.aprobar', $ev['id']) }}">
+                                <form method="POST" action="{{ route('secretaria.prestamos.aprobar', $pid) }}">
                                   @csrf @method('PATCH')
                                   <button type="submit" class="action-btn text-white text-[.68rem] py-1 px-2.5" style="background:var(--green)">Aprobar</button>
                                 </form>
-                                <button @click="openCancel({{ $ev['id'] }})"
+                                <button @click="openCancel({{ $pid }})"
                                         class="action-btn border border-red-200 text-red-500 bg-white text-[.68rem] py-1 px-2.5">Rechazar</button>
                               @elseif($ev['estado'] === 'aprobado')
-                                <form method="POST" action="{{ route('secretaria.prestamos.checkin', $ev['id']) }}">
+                                <form method="POST" action="{{ route('secretaria.prestamos.checkin', $pid) }}">
                                   @csrf @method('PATCH')
                                   <button type="submit" class="action-btn text-white text-[.68rem] py-1 px-2.5" style="background:var(--blue)">Check-in</button>
                                 </form>
-                                <button @click="openCancel({{ $ev['id'] }})"
+                                <button @click="openCancel({{ $pid }})"
                                         class="action-btn border border-red-200 text-red-500 bg-white text-[.68rem] py-1 px-2.5">Cancelar</button>
                               @elseif($ev['estado'] === 'activo')
-                                <form method="POST" action="{{ route('secretaria.prestamos.finalizar', $ev['id']) }}">
+                                <form method="POST" action="{{ route('secretaria.prestamos.finalizar', $pid) }}">
                                   @csrf @method('PATCH')
                                   <button type="submit" class="action-btn text-white text-[.68rem] py-1 px-2.5" style="background:var(--blue)">Finalizar</button>
                                 </form>

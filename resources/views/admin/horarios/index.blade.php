@@ -186,7 +186,7 @@
   {{-- Aviso sobre bloqueo automático --}}
   <div class="mt-4 rounded-xl bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-700 flex items-start gap-3">
     <svg width="18" height="18" fill="none" viewBox="0 0 24 24" class="mt-0.5 flex-shrink-0"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    <p>Los horarios activos <strong>bloquean automáticamente</strong> el aula: la secretaría no podrá registrar préstamos en esa franja horaria mientras el horario esté vigente.</p>
+    <p>Los horarios activos <strong>reservan el aula</strong> en esa franja horaria. Durante la clase, la secretaría verá el aula en estado <em>En espera de check-in</em> y deberá confirmar la asistencia para marcarla como ocupada.</p>
   </div>
 
   {{-- Modal Crear / Editar --}}
@@ -292,7 +292,7 @@
           <div x-show="editId" class="col-span-2">
             <label class="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" name="activo" value="1" x-model="form.activo" class="w-4 h-4 rounded" style="accent-color:var(--blue)"/>
-              <span class="text-sm text-gray-700">Horario activo (bloquea el aula)</span>
+              <span class="text-sm text-gray-700">Horario activo (reserva el aula · requiere check-in)</span>
             </label>
           </div>
 
