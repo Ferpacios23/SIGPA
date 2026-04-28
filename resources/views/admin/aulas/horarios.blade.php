@@ -134,7 +134,7 @@
   <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
     <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
       <h3 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;">Clases programadas</h3>
-      <span class="text-gray-400 text-xs">El aula queda bloqueada para préstamos en los horarios activos</span>
+      <span class="text-gray-400 text-xs">El aula queda reservada · la secretaría confirma asistencia con check-in</span>
     </div>
 
     @if($horarios->isEmpty())
@@ -190,8 +190,8 @@
                   {{ $h->fecha_inicio->format('d/m/Y') }}<br>al {{ $h->fecha_fin->format('d/m/Y') }}
                 </td>
                 <td class="px-5 py-3.5">
-                  <span class="badge {{ $h->activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
-                    {{ $h->activo ? '🔒 Bloqueado' : 'Inactivo' }}
+                  <span class="badge {{ $h->activo ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500' }}">
+                    {{ $h->activo ? 'En espera de check-in' : 'Inactivo' }}
                   </span>
                 </td>
                 <td class="px-5 py-3.5">
@@ -226,7 +226,7 @@
       <div class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
         <div>
           <h3 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;">Agregar clase al aula {{ $aula->codigo }}</h3>
-          <p class="text-gray-400 text-xs mt-0.5">El aula quedará bloqueada para préstamos en este horario</p>
+          <p class="text-gray-400 text-xs mt-0.5">El aula quedará reservada · la secretaría hará check-in al inicio de la clase</p>
         </div>
         <button @click="showForm=false" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center">
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -279,7 +279,7 @@
           {{-- Día --}}
           <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">Día de la semana *</label>
-            <select name="dia_semana" class="field" required>
+            <select name="dia_semana" class="field" x-model="dia" required>
               <option value="">Seleccionar día...</option>
               @foreach(['lunes','martes','miercoles','jueves','viernes','sabado'] as $d)
                 <option value="{{ $d }}" {{ old('dia_semana') === $d ? 'selected' : '' }}>{{ ucfirst($d) }}</option>
@@ -291,15 +291,26 @@
           {{-- Hora inicio --}}
           <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">Hora inicio *</label>
-            <input type="time" name="hora_inicio" value="{{ old('hora_inicio') }}" class="field" required/>
+            <input type="time" name="hora_inicio" value="{{ old('hora_inicio') }}" class="field" x-model="horaInicio" required/>
             @error('hora_inicio')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
           </div>
 
           {{-- Hora fin --}}
           <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">Hora fin *</label>
-            <input type="time" name="hora_fin" value="{{ old('hora_fin') }}" class="field" required/>
+            <input type="time" name="hora_fin" value="{{ old('hora_fin') }}" class="field" x-model="horaFin" required/>
             @error('hora_fin')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+          </div>
+
+          {{-- Aviso de conflicto de horario --}}
+          <div class="col-span-2" x-show="conflicto" style="display:none">
+            <div class="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-xs text-red-700 flex items-start gap-2">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" class="mt-0.5 flex-shrink-0">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <span x-text="conflicto"></span>
+            </div>
           </div>
 
           {{-- Periodo inicio --}}
@@ -320,7 +331,7 @@
 
         <div class="rounded-xl bg-blue-50 border border-blue-100 px-4 py-3 text-xs text-blue-700 flex items-start gap-2">
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" class="mt-0.5 flex-shrink-0"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          El aula <strong>{{ $aula->codigo }}</strong> quedará bloqueada cada <strong x-text="'...'">semana</strong> en la franja registrada durante el periodo indicado. La secretaría no podrá crear préstamos en ese horario.
+          El aula <strong>{{ $aula->codigo }}</strong> quedará reservada cada semana en la franja registrada. Durante la clase, la secretaría verá el botón de <strong>Check-in</strong> para confirmar la asistencia y marcarla como ocupada.
         </div>
 
         <div class="flex gap-3 pt-2">
@@ -329,6 +340,8 @@
             Cancelar
           </button>
           <button type="submit"
+            :disabled="!!conflicto"
+            :class="conflicto ? 'opacity-40 cursor-not-allowed' : ''"
             class="flex-1 py-2.5 rounded-xl text-white font-semibold text-sm"
             style="background:var(--blue)">
             Registrar clase
@@ -342,5 +355,15 @@
 @endsection
 
 @section('scripts')
-<script>window.SIGPA_PAGE = { hasErrors: {{ $errors->any() ? 'true' : 'false' }} };</script>
+<script>
+window.SIGPA_PAGE = {
+  hasErrors: {{ $errors->any() ? 'true' : 'false' }},
+  horarios: {!! $horarios->map(fn($h) => [
+    'dia'     => $h->dia_semana,
+    'inicio'  => \Carbon\Carbon::parse($h->hora_inicio)->format('H:i'),
+    'fin'     => \Carbon\Carbon::parse($h->hora_fin)->format('H:i'),
+    'materia' => $h->materia,
+  ])->values()->toJson() !!}
+};
+</script>
 @endsection

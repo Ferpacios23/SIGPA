@@ -389,7 +389,23 @@ function horariosApp() {
 function horariosAulaApp() {
   const cfg = window.SIGPA_PAGE || {};
   return {
-    showForm: cfg.hasErrors ?? false,
+    showForm:   cfg.hasErrors ?? false,
+    dia:        '',
+    horaInicio: '',
+    horaFin:    '',
+    get conflicto() {
+      if (!this.dia || !this.horaInicio || !this.horaFin) return null;
+      if (this.horaFin <= this.horaInicio) return null;
+      const horarios = cfg.horarios || [];
+      const match = horarios.find(h =>
+        h.dia === this.dia &&
+        this.horaInicio < h.fin &&
+        this.horaFin    > h.inicio
+      );
+      return match
+        ? `Esa hora ya está separada: "${match.materia}" ocupa de ${match.inicio} a ${match.fin} el día seleccionado.`
+        : null;
+    },
   };
 }
 
@@ -403,5 +419,42 @@ function aulasSecretariaApp() {
   return {
     search:       '',
     filterEstado: '',
+  };
+}
+
+/* ── Secretaría — Tarjeta de cancelación durante clase ───────────── */
+/*
+ * horaInicio / horaFin: strings "HH:MM" del préstamo activo.
+ * Mantiene un timer que actualiza `now` cada 15 s para que las
+ * propiedades reactivas recalculen sin recargar la página.
+ *
+ * Estados:
+ *   enCurso && !habilitado  → botón deshabilitado, muestra cuenta regresiva
+ *   enCurso &&  habilitado  → botón rojo activo "Cancelar clase y liberar"
+ *  !enCurso                 → botón estándar "Finalizar y liberar"
+ */
+function cancelacionClaseCard(horaInicio, horaFin) {
+  return {
+    now: new Date(),
+    _timer: null,
+
+    get _inicio() {
+      const [h, m] = horaInicio.split(':');
+      const d = new Date(); d.setHours(+h, +m, 0, 0); return d;
+    },
+    get _fin() {
+      const [h, m] = horaFin.split(':');
+      const d = new Date(); d.setHours(+h, +m, 0, 0); return d;
+    },
+    get _habilitadoEn() { return new Date(this._inicio.getTime() + 30 * 60_000); },
+
+    get enCurso()          { return this.now >= this._inicio && this.now < this._fin; },
+    get habilitado()       { return this.now >= this._habilitadoEn; },
+    get minutosRestantes() {
+      return Math.max(1, Math.ceil((this._habilitadoEn - this.now) / 60_000));
+    },
+
+    init()    { this._timer = setInterval(() => { this.now = new Date(); }, 15_000); },
+    destroy() { clearInterval(this._timer); },
   };
 }
