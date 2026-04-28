@@ -8,37 +8,7 @@
 @section('page-subtitle', 'Registro de docentes sin acceso al sistema')
 
 @section('sidebar-nav')
-  <p class="nav-section">Principal</p>
-  <a href="{{ route('dashboard.admin') }}" class="nav-item">
-    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="5" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="12" width="7" height="9" rx="1" stroke="currentColor" stroke-width="2"/><rect x="3" y="16" width="7" height="5" rx="1" stroke="currentColor" stroke-width="2"/></svg>
-    Dashboard
-  </a>
-  <p class="nav-section mt-2">Gestión</p>
-  <a href="{{ route('admin.usuarios.index') }}" class="nav-item">
-    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/></svg>
-    Usuarios
-  </a>
-  <a href="{{ route('admin.docentes.index') }}" class="nav-item active" style="background:rgba(0,182,122,.2);color:#4ade9a;">
-    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>
-    Docentes
-  </a>
-  <a href="{{ route('admin.aulas.index') }}" class="nav-item">
-    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3 9h18M9 21V9" stroke="currentColor" stroke-width="2"/></svg>
-    Aulas
-  </a>
-  <a href="{{ route('admin.equipos.index') }}" class="nav-item">
-    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke="currentColor" stroke-width="2"/></svg>
-    Equipos
-  </a>
-  <a href="{{ route('admin.horarios.index') }}" class="nav-item">
-    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    Horarios
-  </a>
-  <p class="nav-section mt-2">Reportes</p>
-  <a href="{{ route('admin.reportes.index') }}" class="nav-item">
-    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    Reportes
-  </a>
+  @include('admin.partials.sidebar')
 @endsection
 
 
