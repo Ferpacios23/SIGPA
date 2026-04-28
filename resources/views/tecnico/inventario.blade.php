@@ -386,8 +386,11 @@
           </div>
           <div class="col-span-2">
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">Ubicación de almacenamiento</label>
-            <input type="text" name="ubicacion_almacenamiento" value="{{ old('ubicacion_almacenamiento') }}" class="field"
-                   placeholder="Ej: Oficina TI, Casillero 3..."/>
+            <select name="ubicacion_almacenamiento" value="{{ old('ubicacion_almacenamiento') }}" class="field">
+              <option value="">Sin ubicación</option>
+              <option value="Sala TI" {{ old('ubicacion_almacenamiento') === 'Sala TI' ? 'selected' : '' }}>Sala TI</option>
+              <option value="Secretaria" {{ old('ubicacion_almacenamiento') === 'Secretaria' ? 'selected' : '' }}>Secretaria</option>
+            </select>
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">Fecha de adquisición</label>
@@ -472,8 +475,12 @@
         {{-- Ubicación --}}
         <div>
           <label class="block text-xs font-semibold text-gray-700 mb-1.5">Ubicación de almacenamiento</label>
-          <input type="text" name="ubicacion_almacenamiento" :value="estadoData.ubicacion" class="field"
-                 placeholder="Ej: Oficina TI, taller de mantenimiento..."/>
+          <select name="ubicacion_almacenamiento" class="field"
+                  x-init="$el.value = estadoData.ubicacion">
+            <option value="">Sin ubicación</option>
+            <option value="Sala TI">Sala TI</option>
+            <option value="Secretaria">Secretaria</option>
+          </select>
         </div>
 
         <div class="flex gap-3 pt-1">

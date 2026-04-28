@@ -200,7 +200,11 @@
           </div>
           <div class="col-span-2">
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">Ubicación de almacenamiento</label>
-            <input type="text" name="ubicacion_almacenamiento" x-model="form.ubicacion_almacenamiento" class="field" placeholder="Sala TI, Armario 3"/>
+            <select name="ubicacion_almacenamiento" x-model="form.ubicacion_almacenamiento" class="field">
+              <option value="">Sin ubicación</option>
+              <option value="Sala TI">Sala TI</option>
+              <option value="Secretaria">Secretaria</option>
+            </select>
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">Fecha adquisición</label>
