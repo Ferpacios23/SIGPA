@@ -29,13 +29,35 @@
     </button>
   </div>
 
-  {{-- Search --}}
-  <div class="bg-white rounded-2xl shadow-sm p-4 mb-5">
-    <div class="relative">
-      <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="15" height="15" fill="none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      <input type="text" x-model="search" placeholder="Buscar por nombre o correo..." class="field pl-9"/>
+  {{-- Filtros --}}
+  <form method="GET" action="{{ route('admin.usuarios.index') }}" class="bg-white rounded-2xl shadow-sm p-4 mb-5">
+    <div class="flex flex-wrap gap-3 items-end">
+      <div class="relative flex-1 min-w-[180px]">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="15" height="15" fill="none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input type="text" name="search" value="{{ $search }}" placeholder="Buscar por nombre o correo..." class="field pl-9"/>
+      </div>
+      <div class="min-w-[150px]">
+        <select name="rol" class="field">
+          <option value="">Todos los roles</option>
+          @foreach($roles as $role)
+            <option value="{{ $role->id }}" {{ $rolId == $role->id ? 'selected' : '' }}>{{ $role->nombre }}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="min-w-[140px]">
+        <select name="estado" class="field">
+          <option value="">Todos los estados</option>
+          <option value="1" {{ $estado === '1' ? 'selected' : '' }}>Activo</option>
+          <option value="0" {{ $estado === '0' ? 'selected' : '' }}>Inactivo</option>
+        </select>
+      </div>
+      <button type="submit" class="px-4 py-2 rounded-xl text-white font-semibold text-sm"
+        style="background:var(--blue)">Buscar</button>
+      @if($search || $rolId || $estado !== null && $estado !== '')
+        <a href="{{ route('admin.usuarios.index') }}" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50">Limpiar</a>
+      @endif
     </div>
-  </div>
+  </form>
 
   {{-- Table --}}
   <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -64,8 +86,7 @@
               ];
               $c = $colors[$rSlug] ?? ['badge'=>'bg-gray-100 text-gray-600','av'=>'rgba(100,116,139,.15)','avc'=>'#64748b'];
             @endphp
-            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors"
-                x-show="!search || '{{ strtolower($u->name.' '.$u->email) }}'.includes(search.toLowerCase())">
+            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
               <td class="px-5 py-3.5">
                 <div class="flex items-center gap-3">
                   <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0"

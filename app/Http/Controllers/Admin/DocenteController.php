@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class DocenteController extends Controller
@@ -55,17 +56,19 @@ class DocenteController extends Controller
         $data = $request->validate([
             'name'           => ['required', 'string', 'max:255'],
             'email'          => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password'       => ['nullable', 'string', 'min:8'],
             'identificacion' => ['nullable', 'string', 'max:20', 'unique:user_profiles,identificacion'],
             'telefono'       => ['nullable', 'string', 'max:20'],
             'dependencia'    => ['nullable', 'string', 'max:100'],
         ]);
 
-        DB::transaction(function () use ($data, $role) {
-            // RF39: Contraseña bloqueada — el docente no puede iniciar sesión
+        $passwordInicial = $data['password'] ?? 'docente123';
+
+        DB::transaction(function () use ($data, $role, $passwordInicial) {
             $user = User::create([
                 'name'     => $data['name'],
                 'email'    => $data['email'],
-                'password' => '!'.Str::random(40), // contraseña imposible de ingresar
+                'password' => Hash::make($passwordInicial),
             ]);
 
             UserProfile::create([
@@ -79,7 +82,7 @@ class DocenteController extends Controller
         });
 
         return redirect()->route('admin.docentes.index')
-                         ->with('success', "Docente {$data['name']} registrado correctamente.");
+                         ->with('success', "Docente {$data['name']} registrado. Contraseña inicial: {$passwordInicial}");
     }
 
     // ── Actualizar datos del docente ─────────────────────────────

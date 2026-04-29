@@ -90,10 +90,16 @@
                 'liberado_por_tolerancia'=> 'bg-orange-100 text-orange-600',
               ][$p->estado] ?? 'bg-gray-100 text-gray-500';
             @endphp
-            <tr class="border-b border-gray-50 hover:bg-gray-50/70 transition-colors">
+            @php $esDocente = $p->user?->profile?->role?->slug === 'docente'; @endphp
+            <tr class="border-b {{ ($p->estado==='pendiente' && $esDocente) ? 'border-l-2' : 'border-gray-50' }} hover:bg-gray-50/70 transition-colors"
+                style="{{ ($p->estado==='pendiente' && $esDocente) ? 'border-left-color:var(--orange)' : '' }}">
               <td class="px-5 py-3.5">
                 <p class="font-semibold text-gray-800 leading-tight">{{ $p->user->name ?? '—' }}</p>
                 <p class="text-xs text-gray-400">{{ $p->user->profile?->identificacion ?? $p->user->email ?? '' }}</p>
+                @if($esDocente && $p->estado === 'pendiente')
+                  <span class="inline-block mt-1 text-xs font-semibold px-1.5 py-0.5 rounded-md"
+                        style="background:rgba(247,107,28,.12);color:#c2410c">🎓 Solicitud docente</span>
+                @endif
               </td>
               <td class="px-5 py-3.5">
                 <p class="font-bold text-gray-800">{{ $p->aula->codigo ?? '—' }}</p>

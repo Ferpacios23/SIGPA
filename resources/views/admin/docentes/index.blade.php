@@ -5,7 +5,7 @@
 @section('accent-color', 'var(--green)')
 @section('role-label', '⭐ Administrador')
 @section('page-title', 'Docentes')
-@section('page-subtitle', 'Registro de docentes sin acceso al sistema')
+@section('page-subtitle', 'Registro y gestión de docentes del sistema')
 
 @section('sidebar-nav')
   @include('admin.partials.sidebar')
@@ -159,7 +159,7 @@
       <div class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
         <div>
           <h3 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;">Registrar Docente</h3>
-          <p class="text-gray-400 text-xs mt-0.5">Sin acceso al sistema (RF39)</p>
+          <p class="text-gray-400 text-xs mt-0.5">El docente podrá acceder con su correo y contraseña</p>
         </div>
         <button @click="showCreate=false" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center">
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -194,12 +194,16 @@
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">Teléfono</label>
             <input type="text" name="telefono" value="{{ old('telefono') }}" class="field" placeholder="3001234567"/>
           </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Contraseña inicial</label>
+            <input type="text" name="password" value="{{ old('password') }}" class="field" placeholder="Dejar vacío para usar 'docente123'" autocomplete="off"/>
+          </div>
         </div>
 
         <div class="p-3 rounded-xl flex items-start gap-2 text-xs"
-             style="background:rgba(234,179,8,.08);color:#854d0e;border:1px solid rgba(234,179,8,.2)">
+             style="background:rgba(247,107,28,.08);color:#c2410c;border:1px solid rgba(247,107,28,.2)">
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" class="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          El docente <strong>no podrá iniciar sesión</strong>. Solo es un registro de referencia para asignar préstamos.
+          El docente podrá iniciar sesión con su correo y la contraseña que indiques. Si no indicas contraseña, se usará <strong>docente123</strong>.
         </div>
 
         <div class="flex gap-3 pt-1">

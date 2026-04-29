@@ -157,12 +157,15 @@ Route::middleware(['auth', 'role:tecnico'])
 });
 
 // ══════════════════════════════════════════════════════════════════
-// DOCENTE  (módulo no implementado — redirige al login con mensaje)
+// DOCENTE
 // ══════════════════════════════════════════════════════════════════
 Route::middleware(['auth', 'role:docente'])
      ->prefix('docente')
      ->name('docente.')
      ->group(function () {
 
-    Route::get('/dashboard', [DocenteController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard',                                    [DocenteController::class, 'index'])->name('dashboard');
+    Route::get('/solicitudes',                                  [DocenteController::class, 'solicitudes'])->name('solicitudes.index');
+    Route::post('/solicitudes',                                 [DocenteController::class, 'store'])->name('solicitudes.store');
+    Route::patch('/solicitudes/{solicitud}/cancelar',           [DocenteController::class, 'cancelar'])->name('solicitudes.cancelar');
 });

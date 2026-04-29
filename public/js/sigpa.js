@@ -1,4 +1,4 @@
-/* ============================================================
+===========================================================
    SIGPA — Scripts globales (Alpine.js components + utilidades)
    ============================================================ */
 
@@ -224,7 +224,6 @@ function usuariosApp() {
   return {
     showModal: false,
     editId:    null,
-    search:    '',
     usersData: cfg.usersData ?? {},
     form: { name:'', email:'', password:'', role_id:'', identificacion:'', telefono:'', dependencia:'', activo:true },
 
@@ -250,6 +249,17 @@ function usuariosApp() {
       };
       this.showModal = true;
     },
+  };
+}
+
+/* ── Docente — Solicitudes ────────────────────────────────────────── */
+function docenteSolicitudesApp() {
+  const cfg = window.SIGPA_PAGE || {};
+  return {
+    showCreate: cfg.hasErrors ?? false,
+    showCancel: false,
+    cancelId:   null,
+    confirmCancel(id) { this.cancelId = id; this.showCancel = true; },
   };
 }
 

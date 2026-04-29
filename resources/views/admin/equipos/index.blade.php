@@ -29,11 +29,12 @@
   </div>
 
   {{-- Stats --}}
-  <div class="grid grid-cols-3 gap-4 mb-5">
+  <div class="grid grid-cols-4 gap-4 mb-5">
     @foreach([
-      ['Disponibles', $equiposDisponibles, 'var(--green)',   'rgba(0,182,122,.08)'],
-      ['Prestados',   $equiposPrestados,   'var(--magenta)', 'rgba(224,23,108,.08)'],
-      ['Total',       $totalEquipos,       'var(--blue)',     'rgba(26,79,214,.08)'],
+      ['Disponibles',    $equiposDisponibles,    'var(--green)',   'rgba(0,182,122,.08)'],
+      ['Prestados',      $equiposPrestados,      'var(--magenta)', 'rgba(224,23,108,.08)'],
+      ['No disponibles', $equiposNoDisponibles,  'var(--orange)',  'rgba(247,107,28,.08)'],
+      ['Total',          $totalEquipos,          'var(--blue)',    'rgba(26,79,214,.08)'],
     ] as [$lbl,$val,$col,$bg])
     <div class="bg-white rounded-2xl p-4 shadow-sm text-center">
       <p style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:{{ $col }}">{{ $val }}</p>
@@ -184,7 +185,7 @@
           <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">Marca</label>
             <input type="text" name="marca" x-model="form.marca" class="field" placeholder="Epson, Dell..."/>
-          </div>
+          </div>f
           <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">Modelo</label>
             <input type="text" name="modelo" x-model="form.modelo" class="field"/>

@@ -13,11 +13,25 @@ use Illuminate\Support\Facades\Auth;
  
 class UsuarioController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('profile.role')->latest()->paginate(15);
+        $search = $request->get('search');
+        $rolId  = $request->get('rol');
+        $estado = $request->get('estado');
+
+        $users = User::with('profile.role')
+            ->when($search, fn($q) => $q->where(fn($q2) => $q2
+                ->where('name',  'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%")
+            ))
+            ->when($rolId, fn($q) => $q->whereHas('profile', fn($q2) => $q2->where('role_id', $rolId)))
+            ->when($estado !== null && $estado !== '', fn($q) => $q->whereHas('profile', fn($q2) => $q2->where('activo', $estado)))
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
         $roles = Role::where('activo', true)->get();
-        return view('admin.usuarios.index', compact('users', 'roles'));
+        return view('admin.usuarios.index', compact('users', 'roles', 'search', 'rolId', 'estado'));
     }
  
     public function create()

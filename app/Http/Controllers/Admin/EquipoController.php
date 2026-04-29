@@ -19,9 +19,10 @@ class EquipoController extends Controller
                                     ->where('disponible', false)
                                     ->whereNotIn('estado_fisico', $fueraDeServicio)
                                     ->count();
-        $totalEquipos       = Equipo::where('activo', true)->count();
+        $totalEquipos         = Equipo::where('activo', true)->count();
+        $equiposNoDisponibles = Equipo::where('activo', true)->where('disponible', false)->count();
 
-        return view('admin.equipos.index', compact('equipos', 'equiposDisponibles', 'equiposPrestados', 'totalEquipos'));
+        return view('admin.equipos.index', compact('equipos', 'equiposDisponibles', 'equiposPrestados', 'totalEquipos', 'equiposNoDisponibles'));
     }
  
     public function store(Request $request)
