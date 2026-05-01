@@ -43,7 +43,7 @@
   </div>
 
   {{-- Filtros --}}
-  <form method="GET" class="bg-white rounded-2xl shadow-sm p-4 mb-5 flex flex-wrap gap-3">
+  <form method="GET" class="bg-white rounded-2xl shadow-sm p-4 mb-5 flex items-center gap-3">
     <select name="dia" class="field w-auto min-w-36" onchange="this.form.submit()">
       <option value="">Todos los días</option>
       @foreach(['lunes','martes','miercoles','jueves','viernes','sabado'] as $d)

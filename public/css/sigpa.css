@@ -121,7 +121,16 @@ tr:hover td { background: #f0f5ff; }
 .grid-dia-header { padding: 8px 10px; font-size: .75rem; font-weight: 800; text-align: center; letter-spacing: .03em; text-transform: uppercase; }
 .grid-bloque { margin: 4px 6px; padding: 7px 8px; border-radius: 8px; font-size: .7rem; line-height: 1.3; }
 .grid-bloque-hora { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: .68rem; opacity: .8; }
-.grid-vacio { padding: 16px 8px; text-align: center; color: #cbd5e1; font-size: .75rem; }
+.grid-vacio { padding: 16px 8px; text-align: center; color: #cbd5e1; font-size: .75rem; font-style: italic; }
+
+/* ── Grilla docente (variante naranja) ── */
+.grid-dia-hoy                      { border-color: var(--orange); background: rgba(247,107,28,.06); }
+.badge-hoy                         { display: inline-flex; align-items: center; background: var(--orange); color: #fff; font-size: .55rem; border-radius: 100px; padding: 2px 6px; font-weight: 700; }
+.grid-bloque-orange                { background: rgba(247,107,28,.1); }
+.grid-bloque-orange .bloque-nombre { font-weight: 600; color: #c2410c; line-height: 1.2; }
+.grid-bloque-orange .bloque-hora   { color: #ea580c; margin-top: 0.125rem; }
+.grid-bloque-orange .bloque-salon  { color: #6b7280; }
+.grid-bloque-orange .bloque-grupo  { color: #9ca3af; }
 
 /* ── Calendario secretaria ── */
 .cal-row { display: grid; grid-template-columns: 52px 1fr; min-height: 52px; position: relative; }
@@ -142,6 +151,45 @@ tr:hover td { background: #f0f5ff; }
 .countdown.normal  { background: rgba(34,197,94,.1);  color: #16a34a; }
 .countdown.info    { background: rgba(59,130,246,.1);  color: #2563eb; }
 .countdown.done    { background: rgba(148,163,184,.1); color: #64748b; }
+
+/* ── Edición de usuario ── */
+.usuario-avatar { background: rgba(26,79,214,.12); color: var(--blue); }
+.usuario-nombre { font-weight: 800; font-size: 1.1rem; }
+.badge-activo   { background: rgba(0,182,122,.12);  color: var(--green); }
+.badge-inactivo { background: rgba(224,23,108,.12); color: var(--magenta); }
+.badge-activo   .badge-dot { background: var(--green); }
+.badge-inactivo .badge-dot { background: var(--magenta); }
+
+/* ── Toggle switch ── */
+.toggle-btn          { transition: background .2s; }
+.toggle-thumb        { transition: transform .2s; }
+.toggle-on-green     { background: var(--green); }
+.toggle-on-blue      { background: var(--blue);  }
+.toggle-off          { background: #d1d5db; }
+.toggle-thumb-on     { transform: translateX(20px); }
+.toggle-locked       { background: var(--green); cursor: not-allowed; }
+.toggle-thumb-locked { transform: translateX(20px); }
+
+/* ── Estado panel ── */
+.estado-panel        { background: #f8fafc; }
+.estado-panel-locked { background: #f8fafc; opacity: .75; cursor: not-allowed; }
+/* ── Tipografía de encabezados ── */
+.page-heading { font-size: 1.4rem; font-weight: 800; }
+.modal-title  { font-weight: 800; font-size: 1.1rem; }
+
+/* ── Botones de acción ── */
+.btn-save   { background: var(--blue); }
+.btn-blue   { background: var(--blue);   box-shadow: 0 4px 16px rgba(26,79,214,.3); }
+.btn-orange { background: var(--orange); box-shadow: 0 4px 16px rgba(247,107,28,.3); }
+.btn-danger { background: rgba(224,23,108,.1); color: var(--magenta); }
+.btn-danger:hover { filter: brightness(.95); }
+.text-danger  { color: var(--magenta); }
+.text-orange  { color: var(--orange); }
+.text-green   { color: var(--green); }
+
+/* ── Alertas flash ── */
+.flash-ok  { background: rgba(247,107,28,.1); color: #c2410c; border: 1px solid rgba(247,107,28,.2); }
+.flash-err { background: rgba(239,68,68,.08);  color: #dc2626; border: 1px solid rgba(239,68,68,.15); }
 
 /* ── Selector de estado físico (TI Inventario) ── */
 .estado-opt input[type=radio] { display: none; }

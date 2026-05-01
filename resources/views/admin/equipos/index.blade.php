@@ -44,7 +44,7 @@
   </div>
 
   {{-- Filtros --}}
-  <div class="bg-white rounded-2xl shadow-sm p-4 mb-5 flex flex-wrap gap-3">
+  <div class="bg-white rounded-2xl shadow-sm p-4 mb-5 flex items-center gap-3">
     <div class="relative flex-1 min-w-48">
       <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="15" height="15" fill="none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       <input type="text" x-model="search" placeholder="Buscar equipo o código..." class="field pl-9"/>

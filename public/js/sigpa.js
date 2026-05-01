@@ -45,6 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Cuentas regresivas
   const countdowns = document.querySelectorAll('[data-segs]');
   if (countdowns.length) {
+    let reloadProgramado = false;
+
     setInterval(() => {
       countdowns.forEach(el => {
         let segs = parseInt(el.dataset.segs, 10);
@@ -59,8 +61,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!txt) return;
 
         if (segs <= 0) {
-          txt.textContent = tipo === 'tolerancia' ? 'Liberando...' : 'Finalizando...';
-          el.className = 'countdown done';
+          const equiposPendientes = parseInt(el.dataset.equipos ?? '0', 10);
+          if (equiposPendientes > 0) {
+            txt.textContent = 'Devolver equipos para liberar';
+            el.className = 'countdown urgente';
+          } else {
+            txt.textContent = tipo === 'tolerancia' ? 'Liberando...' : 'Finalizando...';
+            el.className = 'countdown done';
+            if (!reloadProgramado) {
+              reloadProgramado = true;
+              setTimeout(() => location.reload(), 2500);
+            }
+          }
           return;
         }
 
@@ -220,33 +232,12 @@ function aulasApp() {
 
 /* ── Admin — Usuarios ─────────────────────────────────────────────── */
 function usuariosApp() {
-  const cfg = window.SIGPA_PAGE || {};
   return {
     showModal: false,
-    editId:    null,
-    usersData: cfg.usersData ?? {},
-    form: { name:'', email:'', password:'', role_id:'', identificacion:'', telefono:'', dependencia:'', activo:true },
+    form: { name:'', email:'', password:'', role_id:'', identificacion:'', telefono:'', dependencia:'' },
 
     openCreate() {
-      this.editId = null;
-      this.form = { name:'', email:'', password:'', role_id:'', identificacion:'', telefono:'', dependencia:'', activo:true };
-      this.showModal = true;
-    },
-
-    openEdit(id) {
-      const u = this.usersData[id];
-      if (!u) return;
-      this.editId = id;
-      this.form = {
-        name:           u.name,
-        email:          u.email,
-        password:       '',
-        role_id:        u.profile?.role_id ?? '',
-        identificacion: u.profile?.identificacion ?? '',
-        telefono:       u.profile?.telefono ?? '',
-        dependencia:    u.profile?.dependencia ?? '',
-        activo:         u.profile?.activo ?? true,
-      };
+      this.form = { name:'', email:'', password:'', role_id:'', identificacion:'', telefono:'', dependencia:'' };
       this.showModal = true;
     },
   };
