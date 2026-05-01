@@ -18,6 +18,25 @@ class SecretariaController extends Controller
     // ── Dashboard principal ──────────────────────────────────────
     public function index()
     {
+        // Liberar préstamos activos cuya hora_fin ya pasó
+        // Solo si todos los equipos prestados han sido devueltos
+        PrestamoAula::with(['aula', 'prestamosEquipos'])
+            ->where('estado', 'activo')
+            ->whereDate('fecha_prestamo', today())
+            ->where('hora_fin', '<', now()->format('H:i:s'))
+            ->get()
+            ->each(function ($p) {
+                $equiposPendientes = $p->prestamosEquipos
+                    ->where('devuelto', false)
+                    ->whereNotIn('estado', ['cancelado'])
+                    ->count();
+
+                if ($equiposPendientes > 0) return;
+
+                $p->update(['estado' => 'finalizado']);
+                $p->aula?->update(['estado' => 'disponible']);
+            });
+
         $aulasLibres   = Aula::where('estado', 'disponible')->where('activa', true)->count();
         $aulasOcupadas = Aula::where('estado', 'ocupada')->count();
         $totalAulas    = Aula::where('activa', true)->count();
@@ -27,7 +46,7 @@ class SecretariaController extends Controller
         $prestamosActivos  = PrestamoAula::whereIn('estado', ['aprobado', 'activo'])->count();
 
         // Préstamos activos del día con relaciones
-        $prestamosDeHoy = PrestamoAula::with(['user', 'aula'])
+        $prestamosDeHoy = PrestamoAula::with(['user', 'aula', 'prestamosEquipos'])
             ->whereDate('fecha_prestamo', today())
             ->whereIn('estado', ['pendiente', 'aprobado', 'activo'])
             ->orderBy('hora_inicio')
@@ -207,6 +226,15 @@ class SecretariaController extends Controller
             return back()->with('error', 'Solo se pueden finalizar préstamos activos o aprobados.');
         }
 
+        $equiposPendientes = $prestamo->prestamosEquipos()
+            ->where('devuelto', false)
+            ->whereNotIn('estado', ['cancelado'])
+            ->count();
+
+        if ($equiposPendientes > 0) {
+            return back()->with('error', "No se puede finalizar: hay {$equiposPendientes} equipo(s) prestado(s) que aún no han sido devueltos.");
+        }
+
         $prestamo->update(['estado' => 'finalizado']);
 
         // Liberar el aula
@@ -300,30 +328,52 @@ class SecretariaController extends Controller
             return back()->with('error', 'El check-in solo es posible durante el horario de clase.');
         }
 
-        $yaExiste = PrestamoAula::where('aula_id', $horario->aula_id)
+        // Clase anterior que ya terminó pero sigue sin finalizar
+        $anteriorSinFinalizar = PrestamoAula::where('aula_id', $horario->aula_id)
             ->whereDate('fecha_prestamo', today())
-            ->whereIn('estado', ['aprobado', 'activo'])
-            ->exists();
+            ->where('estado', 'activo')
+            ->where('hora_fin', '<=', $horario->hora_inicio)
+            ->first();
 
-        if ($yaExiste) {
-            return back()->with('error', 'El aula ya tiene un préstamo activo registrado.');
+        if ($anteriorSinFinalizar) {
+            $hi = substr($anteriorSinFinalizar->hora_inicio, 0, 5);
+            $hf = substr($anteriorSinFinalizar->hora_fin, 0, 5);
+            return back()->with('error', "No se puede hacer check-in: la clase anterior ({$hi} – {$hf}) aún no ha sido finalizada. Finalice ese préstamo primero.");
         }
 
-        PrestamoAula::create([
-            'user_id'                  => $horario->docente_id,
-            'aula_id'                  => $horario->aula_id,
-            'aprobado_por'             => Auth::id(),
-            'fecha_prestamo'           => today(),
-            'hora_inicio'              => $horario->hora_inicio,
-            'hora_fin'                 => $horario->hora_fin,
-            'motivo'                   => 'Clase: '.$horario->materia.($horario->grupo ? ' · Gr. '.$horario->grupo : ''),
-            'tolerancia_minutos'       => 0,
-            'estado'                   => 'activo',
-            'asistencia_confirmada'    => true,
-            'asistencia_confirmada_en' => now(),
-        ]);
+        // Préstamo que se solapa con el horario actual
+        $conflicto = PrestamoAula::where('aula_id', $horario->aula_id)
+            ->whereDate('fecha_prestamo', today())
+            ->whereIn('estado', ['aprobado', 'activo'])
+            ->where('hora_inicio', '<', $horario->hora_fin)
+            ->where('hora_fin',    '>', $horario->hora_inicio)
+            ->exists();
 
-        return back()->with('success', "Check-in confirmado para el aula {$horario->aula?->codigo}.");
+        if ($conflicto) {
+            return back()->with('error', 'El aula ya tiene un préstamo activo en ese horario.');
+        }
+
+        DB::transaction(function () use ($horario) {
+            PrestamoAula::create([
+                'user_id'                  => $horario->docente_id,
+                'aula_id'                  => $horario->aula_id,
+                'aprobado_por'             => Auth::id(),
+                'fecha_prestamo'           => today(),
+                'hora_inicio'              => $horario->hora_inicio,
+                'hora_fin'                 => $horario->hora_fin,
+                'motivo'                   => 'Clase: '.$horario->materia.($horario->grupo ? ' · Gr. '.$horario->grupo : ''),
+                'tolerancia_minutos'       => 0,
+                'estado'                   => 'activo',
+                'asistencia_confirmada'    => true,
+                'asistencia_confirmada_en' => now(),
+            ]);
+
+            if ($horario->aula) {
+                $horario->aula->update(['estado' => 'ocupada']);
+            }
+        });
+
+        return back()->with('success', "Check-in confirmado. El aula {$horario->aula?->codigo} ha sido marcada como ocupada.");
     }
 
     // ── Historial ────────────────────────────────────────────────

@@ -110,49 +110,10 @@
         @if($aula->prestamo_activo)
           @php
             $pa = $aula->prestamo_activo;
-            $hi = substr($pa->hora_inicio, 0, 5);
-            $hf = substr($pa->hora_fin, 0, 5);
           @endphp
-          <div x-data="cancelacionClaseCard('{{ $hi }}', '{{ $hf }}')"
-               class="mt-3 pt-3 border-t border-gray-100">
+          <div class="mt-3 pt-3 border-t border-gray-100">
             <p class="text-xs font-semibold text-gray-700">{{ $pa->user->name ?? '—' }}</p>
-            <p class="text-xs text-gray-400">{{ $hi }} – {{ $hf }}</p>
-
-            {{-- Clase en curso, primeros 30 min: botón deshabilitado --}}
-            <div x-show="enCurso && !habilitado" class="mt-2" style="display:none">
-              <button type="button" disabled
-                class="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-400 cursor-not-allowed select-none">
-                <svg width="11" height="11" fill="none" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
-                  <path d="M12 7v5l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Cancelar clase · en <span x-text="minutosRestantes + ' min'"></span>
-              </button>
-            </div>
-
-            {{-- Clase en curso, 30+ min: botón rojo activo --}}
-            <div x-show="enCurso && habilitado" class="mt-2" style="display:none">
-              <form method="POST" action="{{ route('secretaria.prestamos.finalizar', $pa->id) }}">
-                @csrf @method('PATCH')
-                <button type="submit"
-                  class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-red-700 hover:underline">
-                  <svg width="11" height="11" fill="none" viewBox="0 0 24 24">
-                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                  </svg>
-                  Cancelar clase y liberar
-                </button>
-              </form>
-            </div>
-
-            {{-- Fuera del horario: botón estándar --}}
-            <div x-show="!enCurso" class="mt-2" style="display:none">
-              <form method="POST" action="{{ route('secretaria.prestamos.finalizar', $pa->id) }}">
-                @csrf @method('PATCH')
-                <button type="submit" class="text-xs font-semibold text-blue-600 hover:underline">
-                  Finalizar y liberar
-                </button>
-              </form>
-            </div>
+            <p class="text-xs text-gray-400">{{ substr($pa->hora_inicio,0,5) }} – {{ substr($pa->hora_fin,0,5) }}</p>
           </div>
 
         @elseif($aula->horario_activo)

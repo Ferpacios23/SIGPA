@@ -24,6 +24,15 @@
   // Construir todos los eventos del día: préstamos + horarios académicos
   $eventos = collect();
 
+  // Aulas que ya tienen préstamo activo hoy (ya se hizo check-in)
+  // Clave = "aula_id_HH:MM" para identificar exactamente qué bloque tuvo check-in
+  $aulasConCheckin = $prestamosDeHoy
+      ->where('estado', 'activo')
+      ->mapWithKeys(fn($p) => [
+          $p->aula_id . '_' . substr($p->hora_inicio, 0, 5) => true
+      ])
+      ->all();
+
   foreach ($prestamosDeHoy as $p) {
       $inicio   = Carbon::parse($p->fecha_prestamo->format('Y-m-d') . ' ' . $p->hora_inicio);
       $fin      = Carbon::parse($p->fecha_prestamo->format('Y-m-d') . ' ' . $p->hora_fin);
@@ -41,29 +50,40 @@
           $tipo = null;
       }
 
+      $equiposPendientes = $p->prestamosEquipos
+          ->where('devuelto', false)
+          ->whereNotIn('estado', ['cancelado'])
+          ->count();
+
       $eventos->push([
-          'tipo'        => 'prestamo',
-          'estado'      => $p->estado,
-          'aula'        => $p->aula?->codigo ?? '—',
-          'nombre'      => $p->user?->name ?? '—',
-          'motivo'      => $p->motivo,
-          'hora_inicio' => $p->hora_inicio,
-          'hora_fin'    => $p->hora_fin,
-          'h_inicio'    => Carbon::parse($p->hora_inicio)->hour + Carbon::parse($p->hora_inicio)->minute / 60,
-          'h_fin'       => Carbon::parse($p->hora_fin)->hour + Carbon::parse($p->hora_fin)->minute / 60,
-          'segs'        => $segs,
-          'tipo_cuenta' => $tipo,
-          'tolerancia'  => $p->tolerancia_minutos,
-          'id'          => $p->id,
-          'horario_id'  => null,
-          'prestamo'    => $p,
+          'tipo'               => 'prestamo',
+          'estado'             => $p->estado,
+          'aula'               => $p->aula?->codigo ?? '—',
+          'nombre'             => $p->user?->name ?? '—',
+          'motivo'             => $p->motivo,
+          'hora_inicio'        => $p->hora_inicio,
+          'hora_fin'           => $p->hora_fin,
+          'h_inicio'           => Carbon::parse($p->hora_inicio)->hour + Carbon::parse($p->hora_inicio)->minute / 60,
+          'h_fin'              => Carbon::parse($p->hora_fin)->hour + Carbon::parse($p->hora_fin)->minute / 60,
+          'segs'               => $segs,
+          'tipo_cuenta'        => $tipo,
+          'tolerancia'         => $p->tolerancia_minutos,
+          'id'                 => $p->id,
+          'horario_id'         => null,
+          'prestamo'           => $p,
+          'equipos_pendientes' => $equiposPendientes,
       ]);
   }
 
   foreach ($horariosHoy as $h) {
+      $yaCheckin  = isset($aulasConCheckin[$h->aula_id . '_' . substr($h->hora_inicio, 0, 5)]);
+      $hFinHorario = Carbon::parse($h->hora_fin)->hour + Carbon::parse($h->hora_fin)->minute / 60;
+      $terminado  = !$yaCheckin && $horaAhora >= $hFinHorario;
       $eventos->push([
           'tipo'        => 'horario',
           'estado'      => 'horario_academico',
+          'ya_checkin'  => $yaCheckin,
+          'terminado'   => $terminado,
           'aula'        => $h->aula?->codigo ?? '—',
           'nombre'      => $h->docente?->name ?? 'Docente',
           'motivo'      => $h->materia . ($h->grupo ? ' · Gr. '.$h->grupo : ''),
@@ -74,9 +94,10 @@
           'segs'        => null,
           'tipo_cuenta' => 'horario',
           'tolerancia'  => 0,
-          'id'          => 'h'.$h->id,
-          'horario_id'  => $h->id,
-          'prestamo'    => null,
+          'id'                 => 'h'.$h->id,
+          'horario_id'         => $h->id,
+          'prestamo'           => null,
+          'equipos_pendientes' => 0,
       ]);
   }
 
@@ -222,10 +243,22 @@
 
                           {{-- Badge de estado --}}
                           @if($ev['tipo'] === 'horario')
-                            <span class="badge bg-yellow-100 text-yellow-700">
-                              <svg width="9" height="9" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2.5"/><path d="M12 6v6l3 3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
-                              En espera de check-in
-                            </span>
+                            @if($ev['ya_checkin'])
+                              <span class="badge bg-blue-100 text-blue-700">
+                                <svg width="8" height="8" viewBox="0 0 8 8" fill="#3b82f6"><circle cx="4" cy="4" r="4"/></svg>
+                                En uso
+                              </span>
+                            @elseif($ev['terminado'])
+                              <span class="badge bg-gray-100 text-gray-500">
+                                <svg width="9" height="9" fill="none" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+                                Clase terminada
+                              </span>
+                            @else
+                              <span class="badge bg-yellow-100 text-yellow-700">
+                                <svg width="9" height="9" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2.5"/><path d="M12 6v6l3 3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+                                En espera de check-in
+                              </span>
+                            @endif
                           @elseif($ev['estado'] === 'pendiente')
                             <span class="badge bg-yellow-100 text-yellow-700">Pendiente aprobación</span>
                           @elseif($ev['estado'] === 'aprobado')
@@ -244,6 +277,14 @@
                             <span class="badge bg-red-100 text-red-500">{{ $ev['estado'] === 'cancelado' ? 'Cancelado' : 'Liberado · Inasistencia' }}</span>
                           @endif
 
+                          {{-- Alerta de equipos pendientes de devolución --}}
+                          @if($ev['equipos_pendientes'] > 0)
+                            <span class="countdown urgente">
+                              <svg width="10" height="10" fill="none" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" stroke-width="2"/><path d="M12 9v4M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                              <span>{{ $ev['equipos_pendientes'] }} equipo{{ $ev['equipos_pendientes'] > 1 ? 's' : '' }} por devolver</span>
+                            </span>
+                          @endif
+
                           {{-- Cuenta regresiva --}}
                           @if($ev['segs'] !== null && $ev['segs'] >= 0)
                             @php
@@ -252,17 +293,25 @@
                             @endphp
                             <span class="countdown {{ $urgente ? 'urgente' : ($ev['tipo_cuenta']==='uso' ? 'info' : 'normal') }}"
                                   data-segs="{{ (int)$ev['segs'] }}"
-                                  data-tipo="{{ $ev['tipo_cuenta'] }}">
+                                  data-tipo="{{ $ev['tipo_cuenta'] }}"
+                                  data-equipos="{{ $ev['equipos_pendientes'] }}">
                               <svg width="10" height="10" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                               <span class="countdown-txt">
                                 {{ $ev['tipo_cuenta'] === 'tolerancia' ? 'Libera en ' : 'En uso · libera en ' }}{{ $mins }}m {{ ($ev['segs'] % 60) }}s
                               </span>
                             </span>
                           @elseif($ev['segs'] !== null && $ev['segs'] < 0)
-                            <span class="countdown done">
-                              <svg width="10" height="10" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                              Por liberar...
-                            </span>
+                            @if($ev['equipos_pendientes'] > 0)
+                              <span class="countdown urgente">
+                                <svg width="10" height="10" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                Devolver equipos para liberar
+                              </span>
+                            @else
+                              <span class="countdown done">
+                                <svg width="10" height="10" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                Por liberar...
+                              </span>
+                            @endif
                           @elseif($ev['tipo'] === 'horario')
                             @php
                               $finHorario = Carbon::parse($ev['hora_fin']);
@@ -280,8 +329,8 @@
                             @endif
                           @endif
 
-                          {{-- Check-in para horario académico en curso --}}
-                          @if($ev['tipo'] === 'horario' && $horaAhora >= $ev['h_inicio'] && $horaAhora < $ev['h_fin'])
+                          {{-- Check-in para horario académico en curso (solo si no terminó y sin check-in previo) --}}
+                          @if($ev['tipo'] === 'horario' && !$ev['ya_checkin'] && !$ev['terminado'] && $horaAhora >= $ev['h_inicio'] && $horaAhora < $ev['h_fin'])
                             <form method="POST"
                                   action="{{ route('secretaria.horarios.checkin', $ev['horario_id']) }}"
                                   class="mt-0.5">
@@ -478,8 +527,16 @@
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">Aula *</label>
             <select name="aula_id" class="field" required>
               <option value="">Seleccionar...</option>
-              @foreach($aulas->where('estado','disponible') as $a)
-                <option value="{{ $a->id }}">{{ $a->codigo }} ({{ $a->capacidad }}p)</option>
+              @foreach($aulas->whereNotIn('estado', ['inactiva']) as $a)
+                @php
+                  $etiqueta = match($a->estado) {
+                    'disponible'       => '',
+                    'ocupada'          => ' · Ocupada ahora',
+                    'en_mantenimiento' => ' · En mantenimiento',
+                    default            => '',
+                  };
+                @endphp
+                <option value="{{ $a->id }}">{{ $a->codigo }} ({{ $a->capacidad }}p){{ $etiqueta }}</option>
               @endforeach
             </select>
           </div>
