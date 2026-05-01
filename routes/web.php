@@ -8,6 +8,7 @@ use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\SecretariaController;
 use App\Http\Controllers\Dashboard\TecnicoController;
 use App\Http\Controllers\Dashboard\DocenteController;
+use App\Http\Controllers\Dashboard\HorarioDocenteController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\RolController;
 use App\Http\Controllers\Admin\AulaController;
@@ -165,6 +166,7 @@ Route::middleware(['auth', 'role:docente'])
      ->group(function () {
 
     Route::get('/dashboard',                                    [DocenteController::class, 'index'])->name('dashboard');
+    Route::get('/horario',                                      [HorarioDocenteController::class, 'index'])->name('horario');
     Route::get('/solicitudes',                                  [DocenteController::class, 'solicitudes'])->name('solicitudes.index');
     Route::post('/solicitudes',                                 [DocenteController::class, 'store'])->name('solicitudes.store');
     Route::patch('/solicitudes/{solicitud}/cancelar',           [DocenteController::class, 'cancelar'])->name('solicitudes.cancelar');

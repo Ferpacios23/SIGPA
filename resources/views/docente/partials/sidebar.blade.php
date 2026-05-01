@@ -13,7 +13,9 @@
   Dashboard
 </a>
 
-<p class="nav-section mt-2">Mis Solicitudes</p>
+<p class="nav-section mt-2">Mi Actividad</p>
+
+
 
 <a href="{{ route('docente.solicitudes.index') }}"
    class="nav-item {{ request()->routeIs('docente.solicitudes.*') ? 'active' : '' }}"
