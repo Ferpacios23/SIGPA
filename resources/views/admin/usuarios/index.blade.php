@@ -19,11 +19,10 @@
   {{-- Header --}}
   <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;">Usuarios del sistema</h2>
+      <h2 class="page-heading">Usuarios del sistema</h2>
       <p class="text-gray-500 text-sm mt-0.5">{{ $users->total() }} usuarios registrados</p>
     </div>
-    <button @click="openCreate()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold text-sm"
-      style="background:var(--blue);box-shadow:0 4px 16px rgba(26,79,214,.3)">
+    <button @click="openCreate()" class="btn-blue inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold text-sm">
       <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
       Nuevo Usuario
     </button>
@@ -31,10 +30,10 @@
 
   {{-- Filtros --}}
   <form method="GET" action="{{ route('admin.usuarios.index') }}" class="bg-white rounded-2xl shadow-sm p-4 mb-5">
-    <div class="flex flex-wrap gap-3 items-end">
+    <div class="flex items-center gap-3">
       <div class="relative flex-1 min-w-[180px]">
         <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="15" height="15" fill="none" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        <input type="text" name="search" value="{{ $search }}" placeholder="Buscar por nombre o correo..." class="field pl-9"/>
+        <input type="text" name="search" value="{{ $search }}" placeholder="  Buscar por nombre o correo..." class="field pl-9"/>
       </div>
       <div class="min-w-[150px]">
         <select name="rol" class="field">
@@ -51,8 +50,7 @@
           <option value="0" {{ $estado === '0' ? 'selected' : '' }}>Inactivo</option>
         </select>
       </div>
-      <button type="submit" class="px-4 py-2 rounded-xl text-white font-semibold text-sm"
-        style="background:var(--blue)">Buscar</button>
+      <button type="submit" class="btn-blue px-4 py-2 rounded-xl text-white font-semibold text-sm">Buscar</button>
       @if($search || $rolId || $estado !== null && $estado !== '')
         <a href="{{ route('admin.usuarios.index') }}" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50">Limpiar</a>
       @endif
@@ -109,7 +107,7 @@
               </td>
               <td class="px-5 py-3.5">
                 <div class="flex gap-2">
-                  <button @click="openEdit({{ $u->id }})" class="text-xs font-semibold text-blue-600 hover:underline">Editar</button>
+                  <a href="{{ route('admin.usuarios.edit', $u->id) }}" class="text-xs font-semibold text-blue-600 hover:underline">Editar</a>
                   @if($u->id !== auth()->id())
                     <form action="{{ route('admin.usuarios.destroy', $u->id) }}" method="POST"
                           onsubmit="return confirm('¿Eliminar a {{ $u->name }}?')">
@@ -129,18 +127,17 @@
     <div class="px-5 py-3 border-t border-gray-100">{{ $users->links() }}</div>
   </div>
 
-  {{-- ════ MODAL CREAR/EDITAR ════ --}}
+  {{-- ════ MODAL NUEVO USUARIO ════ --}}
   <div x-show="showModal" class="modal-overlay" @click.self="showModal=false" style="display:none">
     <div class="modal-box">
       <div class="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
-        <h3 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;" x-text="editId ? 'Editar Usuario' : 'Nuevo Usuario'"></h3>
+        <h3 class="modal-title">Nuevo Usuario</h3>
         <button @click="showModal=false" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center">
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
       </div>
-      <form :action="editId ? '/admin/usuarios/' + editId : '/admin/usuarios'" method="POST" class="px-6 py-5 space-y-4">
+      <form action="{{ route('admin.usuarios.store') }}" method="POST" class="px-6 py-5 space-y-4">
         @csrf
-        <input type="hidden" name="_method" x-bind:value="editId ? 'PUT' : 'POST'"/>
 
         <div class="grid grid-cols-2 gap-4">
           <div class="col-span-2">
@@ -152,14 +149,12 @@
             <input type="email" name="email" x-model="form.email" class="field" required/>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-              <span x-text="editId ? 'Nueva contraseña (opcional)' : 'Contraseña *'"></span>
-            </label>
-            <input type="password" name="password" x-model="form.password" class="field" :required="!editId" minlength="8"/>
+            <label class="block text-xs font-semibold text-gray-700 mb-1.5">Contraseña *</label>
+            <input type="password" name="password" x-model="form.password" class="field" required minlength="8"/>
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">Confirmar contraseña</label>
-            <input type="password" name="password_confirmation" class="field" :required="!editId && form.password"/>
+            <input type="password" name="password_confirmation" class="field" required/>
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">Rol *</label>
@@ -182,10 +177,6 @@
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">Dependencia / Facultad</label>
             <input type="text" name="dependencia" x-model="form.dependencia" class="field"/>
           </div>
-          <div x-show="editId" class="col-span-2 flex items-center gap-2">
-            <input type="checkbox" name="activo" value="1" id="activo_u" x-model="form.activo" class="w-4 h-4 rounded" style="accent-color:var(--blue)"/>
-            <label for="activo_u" class="text-sm text-gray-700 cursor-pointer">Usuario activo</label>
-          </div>
         </div>
 
         @if($errors->any())
@@ -201,9 +192,8 @@
             class="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50">
             Cancelar
           </button>
-          <button type="submit"
-            class="flex-1 py-2.5 rounded-xl text-white font-semibold text-sm"
-            style="background:var(--blue)" x-text="editId ? 'Actualizar' : 'Crear Usuario'">
+          <button type="submit" class="btn-blue flex-1 py-2.5 rounded-xl text-white font-semibold text-sm">
+            Crear Usuario
           </button>
         </div>
       </form>
@@ -211,8 +201,4 @@
   </div>
 
 </div>
-@endsection
-
-@section('scripts')
-<script>window.SIGPA_PAGE = { usersData: @json($users->getCollection()->keyBy('id')) };</script>
 @endsection

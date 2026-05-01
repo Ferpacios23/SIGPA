@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
  
 use App\Http\Controllers\Controller;
+use App\Models\PrestamoAula;
+use App\Models\PrestamoEquipo;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserProfile;
@@ -114,10 +116,26 @@ class UsuarioController extends Controller
  
     public function destroy(User $usuario)
     {
-        // Nunca borrar el propio admin
         if ($usuario->id === Auth::id()) {
             return back()->with('error', 'No puedes eliminar tu propia cuenta.');
         }
+
+        $prestamosAulas   = PrestamoAula::where('user_id', $usuario->id)->count();
+        $prestamosEquipos = PrestamoEquipo::where('user_id', $usuario->id)->count();
+        $total            = $prestamosAulas + $prestamosEquipos;
+
+        if ($total > 0) {
+            $detalle = collect([
+                $prestamosAulas   ? "{$prestamosAulas} préstamo(s) de aulas"   : null,
+                $prestamosEquipos ? "{$prestamosEquipos} préstamo(s) de equipos" : null,
+            ])->filter()->implode(' y ');
+
+            return back()->with(
+                'error',
+                "No se puede eliminar a {$usuario->name}: tiene {$detalle} registrados. Desactiva la cuenta en su lugar."
+            );
+        }
+
         $usuario->delete();
         return redirect()->route('admin.usuarios.index')
                          ->with('success', 'Usuario eliminado.');
