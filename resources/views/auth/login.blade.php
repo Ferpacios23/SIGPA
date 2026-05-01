@@ -7,7 +7,7 @@
   <title>SIGPA – Iniciar Sesión</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <script src="https://cdn.tailwindcss.com"></script>
+  @vite(['resources/css/app.css'])
   <link rel="stylesheet" href="{{ asset('css/auth.css') }}"/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 </head>
