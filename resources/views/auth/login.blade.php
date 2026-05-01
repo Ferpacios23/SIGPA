@@ -7,7 +7,7 @@
   <title>SIGPA – Iniciar Sesión</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  @vite(['resources/css/app.css'])
+  @vite('resources/css/app.css')
   <link rel="stylesheet" href="{{ asset('css/auth.css') }}"/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 </head>
@@ -100,7 +100,7 @@
   <div class="login-card">
 
     {{-- Mobile logo --}}
-    <div class="lg:hidden logo-wrap card-mobile-logo">
+    <div class="lg:hidden logo-wrap mb-8">
       <div class="logo-icon w-9 h-9">
         <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
           <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
@@ -116,7 +116,7 @@
     </div>
 
     @if(session('error'))
-      <div class="card-alert flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+      <div class="mb-4 flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
         <svg class="flex-shrink-0 mt-0.5" width="16" height="16" fill="none" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="10" stroke="#E0176C" stroke-width="2"/>
           <path d="M12 8v4M12 16h.01" stroke="#E0176C" stroke-width="2" stroke-linecap="round"/>
