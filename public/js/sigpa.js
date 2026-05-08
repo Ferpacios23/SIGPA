@@ -177,6 +177,22 @@ function inventarioApp() {
     showVer:       false,
     verData:       {},
 
+    codigoStatus: 'idle',   // idle | checking | taken | free
+    _codigoTimer: null,
+
+    checkCodigo(value) {
+      clearTimeout(this._codigoTimer);
+      const v = value.trim();
+      if (!v) { this.codigoStatus = 'idle'; return; }
+      this.codigoStatus = 'checking';
+      this._codigoTimer = setTimeout(() => {
+        fetch('/tecnico/inventario/check-codigo?codigo=' + encodeURIComponent(v))
+          .then(r => r.json())
+          .then(data => { this.codigoStatus = data.exists ? 'taken' : 'free'; })
+          .catch(() => { this.codigoStatus = 'idle'; });
+      }, 350);
+    },
+
     openEstado(data) { this.estadoData = data; this.obsText = ''; this.obsLen = 0; this.showEstado = true; },
     openVer(data)    { this.verData = data; this.showVer = true; },
   };

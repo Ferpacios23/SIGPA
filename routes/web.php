@@ -153,6 +153,7 @@ Route::middleware(['auth', 'role:tecnico'])
 
     // Inventario + gestión de equipos por TI
     Route::get('/inventario',                          [TecnicoController::class, 'inventario'])->name('inventario');
+    Route::get('/inventario/check-codigo',             [TecnicoController::class, 'checkCodigo'])->name('inventario.checkCodigo');
     Route::post('/inventario',                         [TecnicoController::class, 'storeEquipo'])->name('inventario.store');
     Route::patch('/inventario/{equipo}/estado',        [TecnicoController::class, 'cambiarEstado'])->name('inventario.estado');
 });

@@ -359,8 +359,39 @@
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">Código de inventario *</label>
-            <input type="text" name="codigo_inventario" value="{{ old('codigo_inventario') }}" class="field"
-                   placeholder="Ej: EQ-001" required/>
+            <div class="relative">
+              <input type="text" name="codigo_inventario" value="{{ old('codigo_inventario') }}"
+                     class="field pr-9"
+                     placeholder="Ej: EQ-001" required
+                     @input="checkCodigo($event.target.value)"
+                     :class="codigoStatus === 'taken' ? 'border-red-400 focus:ring-red-300' : codigoStatus === 'free' ? 'border-green-400 focus:ring-green-300' : ''"/>
+              {{-- Icono de estado --}}
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <template x-if="codigoStatus === 'checking'">
+                  <svg class="animate-spin text-gray-400" width="14" height="14" fill="none" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="60" stroke-dashoffset="20"/>
+                  </svg>
+                </template>
+                <template x-if="codigoStatus === 'taken'">
+                  <svg class="text-red-500" width="14" height="14" fill="none" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </template>
+                <template x-if="codigoStatus === 'free'">
+                  <svg class="text-green-500" width="14" height="14" fill="none" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M8 12l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </template>
+              </span>
+            </div>
+            <p x-show="codigoStatus === 'taken'" class="mt-1 text-xs font-semibold text-red-500">
+              Este código ya está en uso.
+            </p>
+            <p x-show="codigoStatus === 'free'" class="mt-1 text-xs font-semibold text-green-600">
+              Código disponible.
+            </p>
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">Estado físico *</label>

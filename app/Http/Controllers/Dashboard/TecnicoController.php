@@ -240,6 +240,13 @@ class TecnicoController extends Controller
         return view('tecnico.inventario', compact('equipos'));
     }
 
+    // ── Verificar unicidad de código en tiempo real ───────────────
+    public function checkCodigo(Request $request)
+    {
+        $existe = Equipo::where('codigo_inventario', $request->query('codigo'))->exists();
+        return response()->json(['exists' => $existe]);
+    }
+
     // ── Registrar nuevo equipo (TI) ──────────────────────────────
     public function storeEquipo(Request $request)
     {
