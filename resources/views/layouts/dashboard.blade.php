@@ -158,6 +158,30 @@
   <main class="flex-1 overflow-y-auto p-4 sm:p-6">
 
     {{-- Flash messages --}}
+    @if(session('temp_password'))
+      <div class="mb-4 rounded-xl overflow-hidden"
+           style="border:1.5px solid rgba(247,107,28,.4);background:rgba(247,107,28,.05)">
+        <div class="flex items-center gap-2 px-4 py-2.5"
+             style="background:rgba(247,107,28,.12);border-bottom:1px solid rgba(247,107,28,.2)">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" style="color:#c2410c">
+            <path d="M12 1a3 3 0 0 0-3 3v1H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4V4a3 3 0 0 0-3-3zm0 2a1 1 0 0 1 1 1v1h-2V4a1 1 0 0 1 1-1zm0 8a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"
+                  fill="currentColor"/>
+          </svg>
+          <span class="text-xs font-bold" style="color:#c2410c">
+            Contraseña temporal — {{ session('temp_password_user') }}
+          </span>
+        </div>
+        <div class="px-4 py-3 flex flex-wrap items-center gap-3">
+          <p class="text-xs text-gray-600">
+            Comunica esta contraseña al usuario. Deberá cambiarla en su primer inicio de sesión.
+          </p>
+          <code class="px-3 py-1.5 rounded-lg font-mono font-bold text-sm tracking-widest select-all"
+                style="background:#fff3e8;color:#9a3412;border:1px solid rgba(247,107,28,.3)">
+            {{ session('temp_password') }}
+          </code>
+        </div>
+      </div>
+    @endif
     @if(session('success'))
       <div class="mb-4 flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium"
            style="background:rgba(0,182,122,.08);border:1px solid rgba(0,182,122,.25);color:#059669">

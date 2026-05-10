@@ -246,19 +246,6 @@ function aulasApp() {
   };
 }
 
-/* ── Admin — Usuarios ─────────────────────────────────────────────── */
-function usuariosApp() {
-  return {
-    showModal: false,
-    form: { name:'', email:'', password:'', role_id:'', identificacion:'', telefono:'', dependencia:'' },
-
-    openCreate() {
-      this.form = { name:'', email:'', password:'', role_id:'', identificacion:'', telefono:'', dependencia:'' };
-      this.showModal = true;
-    },
-  };
-}
-
 /* ── Docente — Solicitudes ────────────────────────────────────────── */
 function docenteSolicitudesApp() {
   const cfg = window.SIGPA_PAGE || {};

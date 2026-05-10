@@ -3,6 +3,7 @@
 // Reemplaza todo el contenido de tu routes/web.php con este archivo
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\SecretariaController;
@@ -53,6 +54,14 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])
      ->name('logout')
      ->middleware('auth');
+
+// Cambio de contraseña obligatorio (cualquier rol autenticado)
+Route::middleware('auth')->group(function () {
+    Route::get('/change-password',  [ChangePasswordController::class, 'show'])
+         ->name('password.change');
+    Route::post('/change-password', [ChangePasswordController::class, 'update'])
+         ->name('password.change.update');
+});
 
 // ══════════════════════════════════════════════════════════════════
 // ADMINISTRADOR

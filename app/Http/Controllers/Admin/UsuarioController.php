@@ -11,6 +11,7 @@ use App\Models\UserProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
  
 class UsuarioController extends Controller
@@ -47,19 +48,21 @@ class UsuarioController extends Controller
         $data = $request->validate([
             'name'           => ['required', 'string', 'max:255'],
             'email'          => ['required', 'email', 'unique:users'],
-            'password'       => ['required', 'min:8', 'confirmed'],
             'role_id'        => ['required', 'exists:roles,id'],
             'identificacion' => ['nullable', 'string', 'max:20', 'unique:user_profiles'],
             'telefono'       => ['nullable', 'string', 'max:20'],
             'dependencia'    => ['nullable', 'string', 'max:100'],
         ]);
- 
+
+        $tempPassword = Str::password(10, letters: true, numbers: true, symbols: false, spaces: false);
+
         $user = User::create([
-            'name'     => $data['name'],
-            'email'    => $data['email'],
-            'password' => Hash::make($data['password']),
+            'name'                 => $data['name'],
+            'email'                => $data['email'],
+            'password'             => $tempPassword,
+            'must_change_password' => true,
         ]);
- 
+
         UserProfile::create([
             'user_id'        => $user->id,
             'role_id'        => $data['role_id'],
@@ -68,9 +71,11 @@ class UsuarioController extends Controller
             'dependencia'    => $data['dependencia'] ?? null,
             'activo'         => true,
         ]);
- 
+
         return redirect()->route('admin.usuarios.index')
-                         ->with('success', "Usuario {$user->name} creado correctamente.");
+                         ->with('success', "Usuario {$user->name} creado correctamente.")
+                         ->with('temp_password', $tempPassword)
+                         ->with('temp_password_user', $user->name);
     }
  
     public function edit(User $usuario)
