@@ -56,6 +56,7 @@ h1, h2, h3, h4 { font-family: 'Syne', sans-serif; }
 .field { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 9px 13px; font-family: 'DM Sans', sans-serif; font-size: .875rem; outline: none; background: #f8fafc; transition: border-color .2s, box-shadow .2s; }
 .field:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,79,214,.1); background: #fff; }
 .field.err, .field.is-invalid { border-color: var(--magenta); }
+select.field { appearance: auto; -webkit-appearance: menulist; padding-right: 8px; cursor: pointer; }
 
 /* ── Status dots ── */
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
