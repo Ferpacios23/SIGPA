@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Admin;
  
 use App\Http\Controllers\Controller;
+use App\Mail\TempPasswordMail;
 use App\Models\PrestamoAula;
 use App\Models\PrestamoEquipo;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
  
@@ -71,6 +74,12 @@ class UsuarioController extends Controller
             'dependencia'    => $data['dependencia'] ?? null,
             'activo'         => true,
         ]);
+
+        try {
+            Mail::to($user->email)->send(new TempPasswordMail($user, $tempPassword));
+        } catch (\Throwable $e) {
+            Log::error("Error enviando correo a {$user->email}: " . $e->getMessage());
+        }
 
         return redirect()->route('admin.usuarios.index')
                          ->with('success', "Usuario {$user->name} creado correctamente.")
