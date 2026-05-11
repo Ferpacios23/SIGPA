@@ -60,6 +60,11 @@
     </div>
 
     <div class="card">
+      <p class="card-label">Rol asignado</p>
+      <p class="card-value">{{ $user->profile?->role?->nombre ?? 'Sin rol' }}</p>
+    </div>
+
+    <div class="card">
       <p class="card-label">Contraseña temporal</p>
       <p class="card-value">{{ $tempPassword }}</p>
     </div>

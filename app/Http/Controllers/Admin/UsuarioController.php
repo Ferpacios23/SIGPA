@@ -75,6 +75,8 @@ class UsuarioController extends Controller
             'activo'         => true,
         ]);
 
+        $user->load('profile.role');
+
         try {
             Mail::to($user->email)->send(new TempPasswordMail($user, $tempPassword));
         } catch (\Throwable $e) {
