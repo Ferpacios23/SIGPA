@@ -8,7 +8,7 @@ Sistema web desarrollado en **Laravel 12** para la **Fundación Universitaria Cl
 
 ### Autenticación y acceso
 - Login con control de roles (Admin, Secretaría, Técnico TI, Docente)
-- Recuperación de contraseña por correo electrónico (Resend)
+- Recuperación de contraseña por correo electrónico
 - Middleware de protección por rol (`role:admin`, `role:secretaria`, `role:tecnico`, `role:docente`)
 - Redirección automática al dashboard correspondiente según el rol
 - **Flujo de primer acceso:** cuando el administrador crea un usuario, el sistema genera una contraseña temporal automáticamente, la envía al correo del usuario y al ingresar por primera vez es redirigido obligatoriamente a cambiar su contraseña antes de acceder al sistema
@@ -16,7 +16,7 @@ Sistema web desarrollado en **Laravel 12** para la **Fundación Universitaria Cl
 ### Administrador
 - Dashboard con estadísticas generales del sistema
 - Gestión de **usuarios** (crear, editar, activar/desactivar)
-  - La creación genera una contraseña temporal aleatoria y la envía por correo electrónico al nuevo usuario
+  - La creación genera una contraseña temporal aleatoria y la envía por correo electrónico al nuevo usuario (incluye nombre, rol asignado, correo y contraseña temporal)
   - La contraseña temporal también se muestra en pantalla al administrador como respaldo
 - Gestión de **aulas** (crear, editar, eliminar)
 - Gestión de horarios por aula (asignar, activar/desactivar, eliminar)
@@ -84,7 +84,7 @@ Sistema web desarrollado en **Laravel 12** para la **Fundación Universitaria Cl
 - Composer
 - MySQL / MariaDB
 - XAMPP / Laragon / Laravel Sail (o servidor equivalente)
-- Cuenta en [Resend](https://resend.com) para el envío de correos
+- Cuenta de Gmail con **verificación en dos pasos** activada (para el envío de correos ( https://myaccount.google.com/apppasswords ))
 
 ---
 
@@ -127,9 +127,13 @@ DB_DATABASE=sigpa
 DB_USERNAME=root
 DB_PASSWORD=
 
-RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxx
-MAIL_MAILER=resend
-MAIL_FROM_ADDRESS="sigpa@tudominio.com"
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=tu_correo@gmail.com
+MAIL_PASSWORD=tu_app_password_de_16_caracteres
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS="tu_correo@gmail.com"
 MAIL_FROM_NAME="${APP_NAME}"
 
 # 6. Ejecutar migraciones y seeders
@@ -141,21 +145,30 @@ php artisan serve
 
 ---
 
-## Configuración de correo (Resend)
+## Configuración de correo (Gmail SMTP)
 
-El sistema usa [Resend](https://resend.com) para enviar correos electrónicos (contraseñas temporales y recuperación de contraseña).
+El sistema usa **Gmail SMTP** para enviar correos electrónicos (contraseñas temporales y recuperación de contraseña). El correo de bienvenida incluye el nombre del usuario, su rol asignado, su correo y su contraseña temporal.
 
-1. Crea una cuenta en [resend.com](https://resend.com)
-2. Genera una API Key en **API Keys**
-3. Agrega un dominio verificado o usa `onboarding@resend.dev` para pruebas (solo envía al correo con el que te registraste en Resend)
-4. Configura las variables de entorno en `.env`:
+### Pasos para configurar Gmail SMTP
+
+1. Activa la **verificación en dos pasos** en tu cuenta Google ([myaccount.google.com/security](https://myaccount.google.com/security))
+2. Ve a [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+3. Crea una nueva contraseña de aplicación con el nombre `SIGPA`
+4. Copia la contraseña de **16 caracteres** que Google genera (sin espacios)
+5. Configura el `.env`:
 
 ```ini
-RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxx
-MAIL_MAILER=resend
-MAIL_FROM_ADDRESS="sigpa@tudominio.com"
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=tu_correo@gmail.com
+MAIL_PASSWORD=abcdefghijklmnop
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS="tu_correo@gmail.com"
 MAIL_FROM_NAME="${APP_NAME}"
 ```
+
+> **Nota:** No uses tu contraseña habitual de Gmail. La App Password es específica para esta aplicación y no expone tu cuenta.
 
 ---
 
@@ -174,7 +187,7 @@ app/
 │       ├── CheckPasswordChange.php     # Redirige al cambio de contraseña en primer acceso
 │       └── NoCacheHeaders.php
 ├── Mail/
-│   └── TempPasswordMail.php    # Mailable para envío de contraseña temporal al nuevo usuario
+│   └── TempPasswordMail.php    # Mailable: envía credenciales + rol al nuevo usuario
 ├── Models/
 │   ├── User.php
 │   ├── UserProfile.php
@@ -191,12 +204,15 @@ resources/
     ├── admin/                  # Usuarios, aulas, equipos, roles, docentes, reportes
     ├── auth/                   # Login, recuperación y cambio de contraseña
     ├── dashboard/              # Dashboards por rol
-    ├── emails/                 # Plantillas de correo electrónico
-    │   └── temp_password.blade.php
+    ├── emails/
+    │   └── temp_password.blade.php   # Correo de bienvenida con credenciales y rol
     ├── layouts/                # Layout principal del dashboard
     ├── secretaria/             # Préstamos de aulas y equipos
     ├── tecnico/                # Asignaciones e inventario TI
     └── docente/                # Dashboard, horario semanal y solicitudes de aula
+public/
+└── css/
+    └── sigpa.css               # Estilos globales del sistema
 ```
 
 ---
@@ -204,9 +220,9 @@ resources/
 ## Stack tecnológico
 
 - **Backend:** Laravel 12 (PHP 8.4)
-- **Frontend:** Blade + Tailwind CSS + Alpine.js
+- **Frontend:** Blade + Tailwind CSS v4 + Alpine.js
 - **Base de datos:** MySQL / MariaDB
-- **Correo electrónico:** Resend (`resend/resend-laravel`)
+- **Correo electrónico:** Gmail SMTP (App Password)
 - **Servidor local:** XAMPP (Apache + MySQL)
 
 ---
