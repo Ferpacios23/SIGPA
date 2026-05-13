@@ -8,7 +8,7 @@ Sistema web desarrollado en **Laravel 12** para la **Fundación Universitaria Cl
 
 ### Autenticación y acceso
 - Login con control de roles (Admin, Secretaría, Técnico TI, Docente)
-- Recuperación de contraseña por correo electrónico
+- Recuperación de contraseña por correo electrónico (correo en español)
 - Middleware de protección por rol (`role:admin`, `role:secretaria`, `role:tecnico`, `role:docente`)
 - Redirección automática al dashboard correspondiente según el rol
 - **Flujo de primer acceso:** cuando el administrador crea un usuario, el sistema genera una contraseña temporal automáticamente, la envía al correo del usuario y al ingresar por primera vez es redirigido obligatoriamente a cambiar su contraseña antes de acceder al sistema
@@ -24,7 +24,12 @@ Sistema web desarrollado en **Laravel 12** para la **Fundación Universitaria Cl
 - Gestión de **docentes** como entidades sin acceso al sistema (RF39): registro con contraseña bloqueada, actualización y eliminación (con bloqueo si tiene préstamos activos)
 - Gestión de **roles** (visualización y detalle)
 - Aprobación y cancelación de préstamos desde el panel admin
-- **Reportes** de préstamos con exportación
+- **Reportes** de préstamos con exportación CSV
+- **Control e historial** (RF30–RF35):
+  - **Historial de préstamos** (RF31): tabla completa de todos los préstamos de aulas con filtros por fecha, estado y usuario; muestra motivo de cancelación
+  - **Historial de accesos** (RF33): registro de cada inicio y cierre de sesión con fecha/hora exacta, usuario, dirección IP y navegador
+  - **Cancelaciones por inasistencia** (RF35): vista dedicada que diferencia los préstamos liberados automáticamente por tolerancia de los cancelados manualmente, con tarjetas de resumen
+  - **Actividad del área TI**: reporte de todo lo que hace el técnico TI — equipos creados, estados modificados (estado anterior → nuevo + observación), equipos asignados a aulas y devoluciones registradas
 - Página de configuración del sistema
 
 ### Secretaría
@@ -53,6 +58,7 @@ Sistema web desarrollado en **Laravel 12** para la **Fundación Universitaria Cl
     - La observación se guarda en el campo `descripcion` del equipo
     - **Bloqueado** si el equipo tiene un préstamo activo (botón deshabilitado en UI + validación en backend)
   - Disponibilidad calculada automáticamente: `dañado` o `dado_de_baja` → no disponible; recuperación solo si no tiene préstamo activo
+  - Todas las acciones (crear equipo, cambiar estado, asignar, devolver) quedan registradas automáticamente en el historial de auditoría
 
 ### Docente
 - Dashboard con resumen personal: estadísticas de clases de la semana, solicitudes pendientes y aprobadas, últimas 5 solicitudes recientes y horario semanal integrado
@@ -71,7 +77,7 @@ Sistema web desarrollado en **Laravel 12** para la **Fundación Universitaria Cl
 
 | Rol | Descripción |
 |---|---|
-| Administrador | Control total: usuarios, aulas, equipos, roles, reportes, docentes |
+| Administrador | Control total: usuarios, aulas, equipos, roles, reportes, docentes, historial completo y actividad TI |
 | Secretaría | Gestión de préstamos de aulas y equipos |
 | Técnico TI | Asignación de equipos, inventario y control de estado físico |
 | Docente | Consulta su horario semanal y gestiona solicitudes de préstamo de aula |
@@ -178,7 +184,7 @@ MAIL_FROM_NAME="${APP_NAME}"
 app/
 ├── Http/
 │   ├── Controllers/
-│   │   ├── Admin/              # Usuarios, Aulas, Equipos, Roles, Reportes, Docentes, Horarios
+│   │   ├── Admin/              # Usuarios, Aulas, Equipos, Roles, Reportes, Docentes, Horarios, Historial
 │   │   ├── Auth/               # Login, recuperación de contraseña y cambio de contraseña obligatorio
 │   │   ├── Dashboard/          # Paneles por rol (Admin, Secretaría, Técnico, Docente) + HorarioDocenteController
 │   │   └── Secretaria/         # Préstamos de equipos (secretaría)
@@ -195,13 +201,22 @@ app/
 │   ├── Aula.php
 │   ├── Equipo.php
 │   ├── PrestamoAula.php
-│   └── PrestamoEquipo.php
+│   ├── PrestamoEquipo.php
+│   └── HistorialMovimiento.php # Auditoría: modelo + helper estático registrar()
+└── Notifications/
+    └── ResetPasswordNotification.php   # Correo de recuperación de contraseña en español
 database/
 ├── migrations/
 └── seeders/
+lang/
+└── es/
+    ├── auth.php                # Mensajes de autenticación en español
+    └── passwords.php           # Mensajes del sistema de contraseñas en español
 resources/
 └── views/
-    ├── admin/                  # Usuarios, aulas, equipos, roles, docentes, reportes
+    ├── admin/
+    │   ├── historial/          # Préstamos, accesos, inasistencias y actividad TI
+    │   └── ...                 # Usuarios, aulas, equipos, roles, docentes, reportes
     ├── auth/                   # Login, recuperación y cambio de contraseña
     ├── dashboard/              # Dashboards por rol
     ├── emails/
@@ -239,7 +254,7 @@ public/
 | `prestamos_aulas` | Préstamos de aulas |
 | `prestamos_equipos` | Préstamos de equipos (independientes o vinculados a un préstamo de aula) |
 | `horarios` | Horarios disponibles por aula |
-| `historial_movimientos` | Auditoría de todas las acciones del sistema |
+| `historial_movimientos` | Auditoría completa: acciones del sistema, accesos de sesión y actividad del área TI |
 
 ---
 
