@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Equipo;
+use App\Models\HistorialMovimiento;
 use App\Models\PrestamoAula;
 use App\Models\PrestamoEquipo;
 use Illuminate\Http\Request;
@@ -263,7 +264,22 @@ class TecnicoController extends Controller
 
         $disponible = !in_array($data['estado_fisico'], ['dañado', 'dado_de_baja']);
 
-        Equipo::create($data + ['disponible' => $disponible, 'activo' => true]);
+        $equipo = Equipo::create($data + ['disponible' => $disponible, 'activo' => true]);
+
+        HistorialMovimiento::registrar(
+            'creacion_equipo',
+            "TI creó el equipo '{$equipo->nombre}' (cód. {$equipo->codigo_inventario}). Estado: {$equipo->estado_fisico}.",
+            $equipo,
+            [
+                'nombre'                   => $equipo->nombre,
+                'codigo_inventario'        => $equipo->codigo_inventario,
+                'marca'                    => $equipo->marca,
+                'modelo'                   => $equipo->modelo,
+                'estado_fisico'            => $equipo->estado_fisico,
+                'ubicacion_almacenamiento' => $equipo->ubicacion_almacenamiento,
+                'fecha_adquisicion'        => $equipo->fecha_adquisicion,
+            ]
+        );
 
         return redirect()->route('tecnico.inventario')
                          ->with('success', "Equipo '{$data['nombre']}' registrado correctamente.");
