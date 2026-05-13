@@ -4,6 +4,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\HistorialMovimiento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -33,15 +34,41 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        if (Auth::user()->must_change_password) {
+        $user = Auth::user();
+
+        try {
+            HistorialMovimiento::registrar(
+                'acceso_login',
+                "Inicio de sesión: {$user->name} ({$user->email})",
+                $user,
+                null,
+                $user->id
+            );
+        } catch (\Throwable) {}
+
+        if ($user->must_change_password) {
             return redirect()->route('password.change');
         }
 
-        return $this->redirectByRole(Auth::user());
+        return $this->redirectByRole($user);
     }
 
     public function logout(Request $request)
     {
+        $user = Auth::user();
+
+        try {
+            if ($user) {
+                HistorialMovimiento::registrar(
+                    'acceso_logout',
+                    "Cierre de sesión: {$user->name} ({$user->email})",
+                    $user,
+                    null,
+                    $user->id
+                );
+            }
+        } catch (\Throwable) {}
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
