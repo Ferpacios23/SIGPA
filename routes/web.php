@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\PrestamoAdminController;
 use App\Http\Controllers\Admin\HorarioController;
 use App\Http\Controllers\Admin\DocenteController as AdminDocenteController;
+use App\Http\Controllers\Admin\HistorialController;
 use App\Http\Controllers\Secretaria\PrestamoEquipoController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -98,6 +99,11 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::get('reportes',        [ReporteController::class, 'index'])->name('reportes.index');
         Route::get('reportes/export', [ReporteController::class, 'export'])->name('reportes.export');
+
+        Route::get('historial/prestamos',     [HistorialController::class, 'prestamos'])->name('historial.prestamos');
+        Route::get('historial/accesos',       [HistorialController::class, 'accesos'])->name('historial.accesos');
+        Route::get('historial/cancelaciones', [HistorialController::class, 'cancelaciones'])->name('historial.cancelaciones');
+        Route::get('historial/actividad-ti',  [HistorialController::class, 'actividadTI'])->name('historial.actividad-ti');
 
         // Docentes (entidades sin acceso al sistema)
         Route::resource('docentes', AdminDocenteController::class)->only(['index','store','update','destroy']);
